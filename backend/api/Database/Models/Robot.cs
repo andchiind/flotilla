@@ -26,7 +26,7 @@ namespace Api.Database.Models
         [MaxLength(200)]
         public string SerialNumber { get; set; }
 
-        public AssetDeck? CurrentAssetDeck { get; set; }
+        public Area? CurrentArea { get; set; }
 
         public float BatteryLevel { get; set; }
 
@@ -95,7 +95,7 @@ namespace Api.Database.Models
             IsarId = createQuery.IsarId;
             Name = createQuery.Name;
             SerialNumber = createQuery.SerialNumber;
-            CurrentAssetDeck = createQuery.CurrentAssetDeck;
+            CurrentArea = createQuery.CurrentArea;
             VideoStreams = videoStreams;
             Host = createQuery.Host;
             Port = createQuery.Port;

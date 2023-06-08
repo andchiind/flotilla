@@ -33,10 +33,6 @@ export function OngoingMissionView({ refreshInterval }: RefreshProps) {
     const [pausedMissions, setPausedMissions] = useState<Mission[]>([])
     const [missionsToDisplay, setMissionsToDisplay] = useState<Mission[]>([])
 
-    const getCurrentMissions = (status: MissionStatus): Promise<PaginatedResponse<Mission>> => {
-        return BackendAPICaller.getMissions({ status: status, pageSize: missionPageSize, orderBy: 'StartTime desc' })
-    }
-
     const updateOngoingMissions = useCallback(() => {
         getCurrentMissions(MissionStatus.Ongoing).then((missions) => {
             setOngoingMissions(missions.content)
@@ -61,6 +57,10 @@ export function OngoingMissionView({ refreshInterval }: RefreshProps) {
         }, refreshInterval)
         return () => clearInterval(id)
     }, [refreshInterval, updateOngoingMissions, updatePausedMissions])
+
+    const getCurrentMissions = (status: MissionStatus): Promise<PaginatedResponse<Mission>> => {
+        return BackendAPICaller.getMissionRuns({ status: status, pageSize: missionPageSize, orderBy: 'StartTime desc' })
+    }
 
     useEffect(() => {
         const missions: Mission[] = ongoingMissions.concat(pausedMissions)

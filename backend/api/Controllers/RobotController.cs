@@ -16,17 +16,17 @@ public class RobotController : ControllerBase
     private readonly ILogger<RobotController> _logger;
     private readonly IRobotService _robotService;
     private readonly IIsarService _isarService;
-    private readonly IMissionService _missionService;
+    private readonly IMissionRunService _missionService;
     private readonly IRobotModelService _robotModelService;
-    private readonly IAssetDeckService _assetDeckService;
+    private readonly IAreaService _areaService;
 
     public RobotController(
         ILogger<RobotController> logger,
         IRobotService robotService,
         IIsarService isarService,
-        IMissionService missionService,
+        IMissionRunService missionService,
         IRobotModelService robotModelService,
-        IAssetDeckService assetDeckService
+        IAreaService areaService
     )
     {
         _logger = logger;
@@ -34,7 +34,7 @@ public class RobotController : ControllerBase
         _isarService = isarService;
         _missionService = missionService;
         _robotModelService = robotModelService;
-        _assetDeckService = assetDeckService;
+        _areaService = areaService;
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class RobotController : ControllerBase
     [HttpDelete]
     [Authorize(Roles = Role.Admin)]
     [Route("{id}")]
-    [ProducesResponseType(typeof(Mission), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -332,13 +332,13 @@ public class RobotController : ControllerBase
     [HttpPost]
     [Authorize(Roles = Role.Admin)]
     [Route("{robotId}/start/{missionId}")]
-    [ProducesResponseType(typeof(Mission), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Mission>> StartMission(
+    public async Task<ActionResult<MissionRun>> StartMission(
         [FromRoute] string robotId,
         [FromRoute] string missionId
     )
@@ -644,13 +644,13 @@ public class RobotController : ControllerBase
     [HttpPost]
     [Authorize(Roles = Role.User)]
     [Route("start-localization")]
-    [ProducesResponseType(typeof(Mission), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Mission>> StartLocalizationMission(
+    public async Task<ActionResult<MissionRun>> StartLocalizationMission(
         [FromBody] ScheduleLocalizationMissionQuery scheduleLocalizationMissionQuery
     )
     {
@@ -672,7 +672,7 @@ public class RobotController : ControllerBase
             return Conflict($"The Robot is not available ({robot.Status})");
         }
 
-        var deck = await _assetDeckService.ReadById(scheduleLocalizationMissionQuery.DeckId);
+        var deck = await _areaService.ReadById(scheduleLocalizationMissionQuery.DeckId); // TODO: update to deck fetch
 
 
         if (deck == null)
@@ -681,11 +681,11 @@ public class RobotController : ControllerBase
             return NotFound("Deck not found");
         }
 
-        var mission = new Mission
+        var mission = new MissionRun
         {
             Name = "Localization Mission",
             Robot = robot,
-            AssetCode = "NA",
+            Area = null, // TODO:
             Status = MissionStatus.Pending,
             DesiredStartTime = DateTimeOffset.UtcNow,
             Tasks = new List<MissionTask>(),
@@ -721,7 +721,7 @@ public class RobotController : ControllerBase
 
         await _missionService.Create(mission);
 
-        robot.CurrentAssetDeck = deck;
+        robot.CurrentArea = deck;
         robot.Status = RobotStatus.Busy;
         robot.CurrentMissionId = mission.Id;
         await _robotService.Update(robot);
@@ -737,18 +737,18 @@ public class RobotController : ControllerBase
     /// <para> This query starts a localization for a given robot </para>
     /// </remarks>
     [HttpPost]
-    [Route("{robotId}/{asset}/{deck}/go-to-safe-position")]
+    [Route("{robotId}/{asset}/{areaName}/go-to-safe-position")]
     [Authorize(Roles = Role.User)]
-    [ProducesResponseType(typeof(Mission), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Mission>> SafePosition(
+    public async Task<ActionResult<MissionRun>> SafePosition(
         [FromRoute] string robotId,
         [FromRoute] string asset,
-        [FromRoute] string deck
+        [FromRoute] string areaName
     )
     {
         var robot = await _robotService.ReadById(robotId);
@@ -758,7 +758,7 @@ public class RobotController : ControllerBase
             return NotFound("Robot not found");
         }
 
-        var assets = await _assetDeckService.ReadByAsset(asset);
+        var assets = await _areaService.ReadByAsset(asset);
 
         if (!assets.Any())
         {
@@ -766,16 +766,16 @@ public class RobotController : ControllerBase
             return NotFound("No asset found");
         }
 
-        var assetDeck = await _assetDeckService.ReadByAssetAndDeck(asset, deck);
-        if (assetDeck is null)
+        var area = await _areaService.ReadByAssetAndName(asset, areaName);
+        if (area is null)
         {
-            _logger.LogWarning("Could not find deck={deck}", deck);
-            return NotFound("No deck found");
+            _logger.LogWarning("Could not find area={areaName}", areaName);
+            return NotFound("No area found");
         }
 
-        if (assetDeck.SafePositions.Count < 1)
+        if (area.SafePositions.Count < 1)
         {
-            _logger.LogWarning("No safe position for asset={asset}, deck={deck}", asset, deck);
+            _logger.LogWarning("No safe position for asset={asset}, area={areaName}", asset, areaName);
             return NotFound("No safe positions found");
         }
 
@@ -800,7 +800,7 @@ public class RobotController : ControllerBase
             return StatusCode(StatusCodes.Status502BadGateway, message);
         }
 
-        var closestSafePosition = ClosestSafePosition(robot.Pose, assetDeck.SafePositions);
+        var closestSafePosition = ClosestSafePosition(robot.Pose, area.SafePositions);
         // Cloning to avoid tracking same object
         var clonedPose = ObjectCopier.Clone(closestSafePosition);
         var customTaskQuery = new CustomTaskQuery
@@ -810,11 +810,11 @@ public class RobotController : ControllerBase
             InspectionTarget = new Position(),
             TaskOrder = 0
         };
-        var mission = new Mission
+        var mission = new MissionRun
         {
             Name = "Drive to Safe Position",
             Robot = robot,
-            AssetCode = assetDeck.AssetCode,
+            Area = area,
             Status = MissionStatus.Pending,
             DesiredStartTime = DateTimeOffset.UtcNow,
             Tasks = new List<MissionTask>(new[] { new MissionTask(customTaskQuery) }),
@@ -855,7 +855,6 @@ public class RobotController : ControllerBase
         await _robotService.Update(robot);
         return Ok(mission);
     }
-
 
     private async void OnIsarUnavailable(Robot robot)
     {

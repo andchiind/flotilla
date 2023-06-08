@@ -108,7 +108,7 @@ namespace Api.Test
         {
             string url = "/missions";
             var response = await _client.GetAsync(url);
-            var missions = await response.Content.ReadFromJsonAsync<List<Mission>>(
+            var missions = await response.Content.ReadFromJsonAsync<List<MissionRun>>(
                 _serializerOptions
             );
             Assert.True(response.IsSuccessStatusCode);
@@ -203,7 +203,7 @@ namespace Api.Test
 
             // Assert
             Assert.True(response.IsSuccessStatusCode);
-            var mission = await response.Content.ReadFromJsonAsync<Mission>(_serializerOptions);
+            var mission = await response.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
             Assert.True(mission != null);
             Assert.True(mission.Id != null);
             Assert.True(mission.Status == MissionStatus.Pending);
@@ -233,10 +233,10 @@ namespace Api.Test
                 }
             };
 
-            var query = new CreateAssetDeckQuery
+            var query = new CreateAreaQuery
             {
                 AssetCode = testAsset,
-                DeckName = testDeck,
+                AreaName = testDeck,
                 DefaultLocalizationPose = testPose
             };
 
@@ -251,7 +251,7 @@ namespace Api.Test
 
             // Assert
             Assert.True(assetDeckResponse.IsSuccessStatusCode);
-            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<AssetDeck>(_serializerOptions);
+            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
             Assert.True(assetDeck != null);
         }
 
@@ -286,7 +286,7 @@ namespace Api.Test
             );
             var assetDeckResponse = await _client.PostAsync(addSafePositionUrl, content);
             Assert.True(assetDeckResponse.IsSuccessStatusCode);
-            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<AssetDeck>(_serializerOptions);
+            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
             Assert.True(assetDeck != null);
 
             // Arrange - Get a Robot
@@ -304,7 +304,7 @@ namespace Api.Test
 
             // Assert
             Assert.True(missionResponse.IsSuccessStatusCode);
-            var mission = await missionResponse.Content.ReadFromJsonAsync<Mission>(_serializerOptions);
+            var mission = await missionResponse.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
             Assert.True(mission != null);
             Assert.True(
                 JsonSerializer.Serialize(mission.Tasks[0].RobotPose.Position) ==

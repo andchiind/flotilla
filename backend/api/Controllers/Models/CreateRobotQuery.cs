@@ -22,6 +22,6 @@ namespace Api.Controllers.Models
 
         public RobotStatus Status { get; set; }
 
-        public AssetDeck CurrentAssetDeck { get; set; }
+        public Area CurrentArea { get; set; }
     }
 }

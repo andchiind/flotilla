@@ -40,7 +40,7 @@ export function MissionHistoryView({ refreshInterval }: RefreshProps) {
 
     const updateCompletedMissions = useCallback(() => {
         const page = currentPage ?? 1
-        BackendAPICaller.getMissions({ pageSize: pageSize, pageNumber: page, orderBy: 'EndTime desc, Name' }).then(
+        BackendAPICaller.getMissionRuns({ pageSize: pageSize, pageNumber: page, orderBy: 'EndTime desc, Name' }).then(
             (paginatedMissions) => {
                 setPaginationDetails(paginatedMissions.pagination)
                 setCompletedMissions(paginatedMissions.content.filter((m) => completedStatuses.includes(m.status)))
