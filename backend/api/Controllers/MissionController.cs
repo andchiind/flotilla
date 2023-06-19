@@ -256,7 +256,7 @@ public class MissionController : ControllerBase
                         }
                     )
                     .ToList();
-                    break;
+                break;
             case MissionSourceType.Custom:
                 missionTasks = _sourceService.GetMissionTasksFromURL(missionDefinition.Source.URL);
                 break;

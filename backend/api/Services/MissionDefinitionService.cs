@@ -1,12 +1,12 @@
+﻿using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using Api.Controllers.Models;
 using Api.Database.Context;
 using Api.Database.Models;
 using Api.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Api.Controllers.Models;
-using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 
 namespace Api.Services
 {

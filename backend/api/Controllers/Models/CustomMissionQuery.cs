@@ -35,7 +35,7 @@ namespace Api.Controllers.Models
         public string AssetCode { get; set; }
 
         public TimeSpan? InspectionFrequency { get; set; }
-        
+
         public string AreaName { get; set; }
 
         public string Name { get; set; }

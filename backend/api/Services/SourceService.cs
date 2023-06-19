@@ -1,11 +1,11 @@
+﻿
 
-
-using Api.Database.Models;
-using Azure.Storage;
-using Azure.Storage.Blobs;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Api.Database.Models;
 using Api.Options;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 
 namespace Api.Services
@@ -43,10 +43,9 @@ namespace Api.Services
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
             containerClient.CreateIfNotExists();
-            
-            var blobClient = containerClient.GetBlobClient(fileName);
 
-            var blobProperties = await blobClient.UploadAsync(fileStream, true);
+            var blobClient = containerClient.GetBlobClient(fileName);
+            _ = await blobClient.UploadAsync(fileStream, true);
             //var hash = $"0x{BitConverter.ToString(blobProperties.Value.ContentHash).Replace("-", string.Empty)}";
             return blobClient.Uri;
         }
@@ -64,7 +63,7 @@ namespace Api.Services
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
             containerClient.CreateIfNotExists();
-            
+
             var blobClient = containerClient.GetBlobClient(id);
 
             List<MissionTask>? content = null;

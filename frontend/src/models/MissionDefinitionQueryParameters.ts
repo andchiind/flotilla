@@ -1,5 +1,6 @@
 export enum SourceType {
-    Echo, Custom
+    Echo,
+    Custom,
 }
 
 export interface MissionDefinitionQueryParameters {

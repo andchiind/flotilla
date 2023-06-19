@@ -142,7 +142,7 @@ export class BackendAPICaller {
         // Always filter by currently selected asset
         const assetCode: string | null = BackendAPICaller.assetCode
         if (assetCode) path = path + 'AssetCode=' + assetCode + '&'
-    
+
         if (parameters.area) path = path + 'Area=' + parameters.area + '&'
         if (parameters.status) path = path + 'status=' + parameters.status + '&'
         if (parameters.pageNumber) path = path + 'PageNumber=' + parameters.pageNumber + '&'
@@ -179,7 +179,9 @@ export class BackendAPICaller {
         return result.content
     }
 
-    static async getMissionDefinitions(parameters: MissionDefinitionQueryParameters): Promise<PaginatedResponse<Mission>> {
+    static async getMissionDefinitions(
+        parameters: MissionDefinitionQueryParameters
+    ): Promise<PaginatedResponse<Mission>> {
         let path: string = 'missions/definitions?'
 
         // Always filter by currently selected asset
@@ -249,7 +251,7 @@ export class BackendAPICaller {
             echoMissionId: echoMissionId,
             desiredStartTime: new Date(),
             assetCode: assetCode,
-            areaName: ""
+            areaName: '',
         }
         const result = await BackendAPICaller.POST<unknown, unknown>(path, body).catch((e) => {
             console.error(`Failed to POST /${path}: ` + e)

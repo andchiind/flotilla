@@ -1,4 +1,4 @@
-namespace Api.Options
+﻿namespace Api.Options
 {
     public class StorageOptions
     {
