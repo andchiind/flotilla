@@ -137,7 +137,17 @@ public static class InitDb
             SafePositions = new List<SafePosition>()
         };
 
-        return new List<Area>(new Area[] { area1, area2 });
+        var area3 = new Area
+        {
+            Id = "TestId",
+            Deck = decks[0],
+            Name = "testArea",
+            Map = new MissionMap { },
+            DefaultLocalizationPose = new Pose { },
+            SafePositions = new List<SafePosition>()
+        };
+
+        return new List<Area>(new Area[] { area1, area2, area3 });
     }
 
     private static List<Source> GetSources()
@@ -285,6 +295,7 @@ public static class InitDb
         context.AddRange(robots);
         context.AddRange(missionDefinitions);
         context.AddRange(missionRuns);
+        context.AddRange(areas);
         context.SaveChanges();
     }
 }

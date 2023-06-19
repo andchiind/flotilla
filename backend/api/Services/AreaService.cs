@@ -53,7 +53,8 @@ namespace Api.Services
 
         private IQueryable<Area> GetAreas()
         {
-            return _context.Areas.Include(a => a.SafePositions);
+            return _context.Areas.Include(a => a.SafePositions)
+                .Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset);
         }
 
         public async Task<Area?> ReadById(string id)
@@ -66,14 +67,16 @@ namespace Api.Services
         {
             return await _context.Areas.Where(a =>
                 a.Name.ToLower().Equals(name.ToLower())
-            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
+            ).Include(a => a.SafePositions)
+                .Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Area>> ReadByAsset(string asset)
         {
 
             return await _context.Areas.Where(a =>
-                a.Deck.Installation.Asset.ShortName.Equals(asset.ToLower())).Include(a => a.SafePositions).ToListAsync();
+                a.Deck.Installation.Asset.ShortName.Equals(asset.ToLower())).Include(a => a.SafePositions)
+                    .Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset).ToListAsync();
         }
 
         public async Task<Area?> ReadByAssetAndName(string asset, string name)
@@ -81,7 +84,8 @@ namespace Api.Services
             return await _context.Areas.Where(a =>
                 a.Deck.Installation.Asset.ShortName.ToLower().Equals(asset.ToLower()) &&
                 a.Name.ToLower().Equals(name.ToLower())
-            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
+            ).Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset)
+                .Include(a => a.SafePositions).FirstOrDefaultAsync();
         }
 
         public async Task<Area> Create(CreateAreaQuery newArea, List<Pose> safePositions)
@@ -91,11 +95,15 @@ namespace Api.Services
             {
                 sp.Add(new SafePosition(p));
             }
+
+            // TODO: lookup to find the correct Deck, Installation and Asset table entries
+
             var Area = new Area
             {
                 Name = newArea.AreaName,
                 DefaultLocalizationPose = newArea.DefaultLocalizationPose,
-                SafePositions = sp
+                SafePositions = sp,
+                // TODO: set Deck
             };
             await _context.Areas.AddAsync(Area);
             await _context.SaveChangesAsync();

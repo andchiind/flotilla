@@ -106,7 +106,7 @@ namespace Api.Test
         [Fact]
         public async Task MissionsTest()
         {
-            string url = "/missions";
+            string url = "/missions/runs";
             var response = await _client.GetAsync(url);
             var missions = await response.Content.ReadFromJsonAsync<List<MissionRun>>(
                 _serializerOptions
@@ -119,7 +119,7 @@ namespace Api.Test
         public async Task GetMissionById_ShouldReturnNotFound()
         {
             string missionId = "RandomString";
-            string url = "/missions/" + missionId;
+            string url = "/missions/runs/" + missionId;
             var response = await _client.GetAsync(url);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -128,7 +128,7 @@ namespace Api.Test
         public async Task DeleteMission_ShouldReturnNotFound()
         {
             string missionId = "RandomString";
-            string url = "/missions/" + missionId;
+            string url = "/missions/runs/" + missionId;
             var response = await _client.DeleteAsync(url);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -190,7 +190,8 @@ namespace Api.Test
             var query = new ScheduledMissionQuery
             {
                 RobotId = robotId,
-                AssetCode = "test",
+                AssetCode = "JSV",
+                AreaName = "testArea",
                 EchoMissionId = 95,
                 DesiredStartTime = DateTimeOffset.UtcNow
             };
@@ -210,12 +211,12 @@ namespace Api.Test
         }
 
         [Fact]
-        public async Task AssetDeckTest()
+        public async Task AreaTest()
         {
             // Arrange
             string testAsset = "testAsset";
             string testDeck = "testDeck";
-            string assetDeckUrl = $"/asset-decks";
+            string areaUrl = $"/areas";
             var testPose = new Pose
             {
                 Position = new Position
@@ -247,7 +248,7 @@ namespace Api.Test
             );
 
             // Act
-            var assetDeckResponse = await _client.PostAsync(assetDeckUrl, content);
+            var assetDeckResponse = await _client.PostAsync(areaUrl, content);
 
             // Assert
             Assert.True(assetDeckResponse.IsSuccessStatusCode);
@@ -260,8 +261,8 @@ namespace Api.Test
         {
             // Arrange - Add Safe Position
             string testAsset = "testAsset";
-            string testDeck = "testDeck";
-            string addSafePositionUrl = $"/asset-decks/{testAsset}/{testDeck}/safe-position";
+            string testArea = "testArea";
+            string addSafePositionUrl = $"/areas/{testAsset}/{testArea}/safe-position";
             var testPosition = new Position
             {
                 X = 1,
@@ -299,7 +300,7 @@ namespace Api.Test
             string robotId = robot.Id;
 
             // Act
-            string goToSafePositionUrl = $"/robots/{robotId}/{testAsset}/{testDeck}/go-to-safe-position";
+            string goToSafePositionUrl = $"/robots/{robotId}/{testAsset}/{testArea}/go-to-safe-position";
             var missionResponse = await _client.PostAsync(goToSafePositionUrl, null);
 
             // Assert
@@ -323,7 +324,7 @@ namespace Api.Test
             foreach (string input in inputOutputPairs.Keys)
             {
                 string assetDeckId = input;
-                string url = $"/asset-decks/{assetDeckId}/map-metadata";
+                string url = $"/areas/{assetDeckId}/map-metadata";
                 var response = await _client.GetAsync(url);
                 Assert.Equal(inputOutputPairs[input], response.StatusCode);
 

@@ -21,19 +21,18 @@ namespace Api.Services
     public class SourceService : ISourceService
     {
         private readonly IOptions<StorageOptions> _storageOptions;
-        private readonly BlobServiceClient _blobServiceClient;
         private readonly ILogger<SourceService> _logger;
 
         public SourceService(IOptions<StorageOptions> storageOptions, ILogger<SourceService> logger)
         {
             _storageOptions = storageOptions;
-            _blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
             _logger = logger;
         }
 
         public async Task<bool> CreateContainer(string containerName)
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             await containerClient.CreateIfNotExistsAsync();
 
             return true;
@@ -41,7 +40,8 @@ namespace Api.Services
 
         public async Task<Uri> UploadFile(string fileName, Stream fileStream)
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
+            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
             containerClient.CreateIfNotExists();
 
             var blobClient = containerClient.GetBlobClient(fileName);
@@ -61,7 +61,8 @@ namespace Api.Services
 
         public List<MissionTask>? GetMissionTasksFromMissionId(string id)
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
+            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
             containerClient.CreateIfNotExists();
 
             var blobClient = containerClient.GetBlobClient(id);

@@ -152,11 +152,11 @@ public class MissionController : ControllerBase
     }
 
     /// <summary>
-    /// Lookup mission by specified id.
+    /// Lookup mission run by specified id.
     /// </summary>
     [HttpGet]
     [Authorize(Roles = Role.Any)]
-    [Route("{id}")]
+    [Route("runs/{id}")]
     [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -165,6 +165,25 @@ public class MissionController : ControllerBase
     public async Task<ActionResult<MissionRun>> GetMissionRunById([FromRoute] string id)
     {
         var mission = await _missionRunService.ReadById(id);
+        if (mission == null)
+            return NotFound($"Could not find mission with id {id}");
+        return Ok(mission);
+    }
+
+    /// <summary>
+    /// Lookup mission definition by specified id.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = Role.Any)]
+    [Route("definitions/{id}")]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<MissionDefinition>> GetMissionDefinitionById([FromRoute] string id)
+    {
+        var mission = await _missionDefinitionService.ReadById(id);
         if (mission == null)
             return NotFound($"Could not find mission with id {id}");
         return Ok(mission);
@@ -492,7 +511,7 @@ public class MissionController : ControllerBase
     /// </summary>
     [HttpDelete]
     [Authorize(Roles = Role.Admin)]
-    [Route("{id}")]
+    [Route("definitions/{id}")]
     [ProducesResponseType(typeof(MissionDefinition), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -503,6 +522,25 @@ public class MissionController : ControllerBase
         var mission = await _missionDefinitionService.Delete(id);
         if (mission is null)
             return NotFound($"Mission definition with id {id} not found");
+        return Ok(mission);
+    }
+
+    /// <summary>
+    /// Deletes the mission run with the specified id from the database.
+    /// </summary>
+    [HttpDelete]
+    [Authorize(Roles = Role.Admin)]
+    [Route("runs/{id}")]
+    [ProducesResponseType(typeof(MissionRun), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<MissionRun>> DeleteMissionRun([FromRoute] string id)
+    {
+        var mission = await _missionRunService.Delete(id);
+        if (mission is null)
+            return NotFound($"Mission run with id {id} not found");
         return Ok(mission);
     }
 }

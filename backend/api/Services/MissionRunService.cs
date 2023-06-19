@@ -72,6 +72,10 @@ namespace Api.Services
         private IQueryable<MissionRun> GetMissionsWithSubModels()
         {
             return _context.MissionRuns
+                .Include(mission => mission.Area)
+                .ThenInclude(a => a.Deck)
+                .ThenInclude(d => d.Installation)
+                .ThenInclude(i => i.Asset)
                 .Include(mission => mission.Robot)
                 .ThenInclude(robot => robot.VideoStreams)
                 .Include(mission => mission.Robot)
