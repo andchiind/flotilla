@@ -15,6 +15,7 @@ import { TaskStatus } from 'models/Task'
 import { CreateCustomMission, CustomMissionQuery } from 'models/CustomMission'
 import { MapMetadata } from 'models/MapMetadata'
 import { MissionDefinition } from 'models/MissionDefinition'
+import { EchoMission } from 'models/EchoMission'
 
 /** Implements the request sent to the backend api. */
 export class BackendAPICaller {
