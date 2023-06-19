@@ -31,7 +31,9 @@ namespace Api.Database.Models
         public string? Comment { get; set; }
 
         [Required]
-        public Area Area { get; set; }
+        public string AssetCode { get; set; }
+
+        public Area? Area { get; set; }
 
         [Required]
         public virtual Robot Robot { get; set; }

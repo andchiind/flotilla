@@ -48,7 +48,6 @@ builder.Services.AddScoped<IStidService, StidService>();
 builder.Services.AddScoped<IMapService, MapService>();
 builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IAreaService, AreaService>();
-builder.Services.AddScoped<IAssetDeckService, AssetDeckService>();
 builder.Services.AddScoped<IRobotModelService, RobotModelService>();
 builder.Services.AddScoped<RobotController>();
 builder.Services.AddScoped<ISourceService, SourceService>();

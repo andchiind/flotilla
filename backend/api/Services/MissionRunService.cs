@@ -324,7 +324,7 @@ namespace Api.Services
             Expression<Func<MissionRun, bool>> assetFilter = parameters.AssetCode is null
                 ? mission => true
                 : mission =>
-                      mission.Area.Deck.Installation.Asset.ShortName.ToLower().Equals(parameters.AssetCode.Trim().ToLower());
+                      mission.AssetCode.ToLower().Equals(parameters.AssetCode.Trim().ToLower());
 
             Expression<Func<MissionRun, bool>> statusFilter = parameters.Status is null
                 ? mission => true

@@ -80,7 +80,7 @@ namespace Api.Services
             }
             try
             {
-                mapMetadata = await ChooseMapFromPositions(positions, mission.Area.Deck.Installation.Asset.ShortName);
+                mapMetadata = await ChooseMapFromPositions(positions, mission.AssetCode);
             }
             catch (ArgumentOutOfRangeException)
             {

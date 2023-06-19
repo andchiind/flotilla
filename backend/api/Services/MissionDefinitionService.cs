@@ -144,7 +144,7 @@ namespace Api.Services
             Expression<Func<MissionDefinition, bool>> assetFilter = parameters.AssetCode is null
                 ? mission => true
                 : mission =>
-                      mission.Area.Deck.Installation.Asset.ShortName.ToLower().Equals(parameters.AssetCode.Trim().ToLower());
+                      mission.AssetCode.ToLower().Equals(parameters.AssetCode.Trim().ToLower());
 
             Expression<Func<MissionDefinition, bool>> missionTypeFilter = parameters.SourceType is null
                 ? mission => true

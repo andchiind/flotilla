@@ -250,7 +250,7 @@ public class MissionController : ControllerBase
                         t =>
                         {
                             var tagPosition = _stidService
-                                .GetTagPosition(t.TagId, missionDefinition.Area.Deck.Installation.Asset.ShortName)
+                                .GetTagPosition(t.TagId, missionDefinition.AssetCode)
                                 .Result;
                             return new MissionTask(t, tagPosition);
                         }
@@ -275,6 +275,7 @@ public class MissionController : ControllerBase
             Status = MissionStatus.Pending,
             DesiredStartTime = rescheduledMissionQuery.DesiredStartTime,
             Tasks = missionTasks,
+            AssetCode = missionDefinition.AssetCode,
             Area = missionDefinition.Area,
             MapMetadata = new MapMetadata()
         };
@@ -376,6 +377,7 @@ public class MissionController : ControllerBase
             },
             Name = echoMission.Name,
             InspectionFrequency = scheduledMissionQuery.InspectionFrequency,
+            AssetCode = scheduledMissionQuery.AssetCode,
             Area = area
         };
 
@@ -387,6 +389,7 @@ public class MissionController : ControllerBase
             Status = MissionStatus.Pending,
             DesiredStartTime = scheduledMissionQuery.DesiredStartTime,
             Tasks = missionTasks,
+            AssetCode = scheduledMissionQuery.AssetCode,
             Area = area,
             MapMetadata = new MapMetadata()
         };
@@ -453,6 +456,7 @@ public class MissionController : ControllerBase
             },
             Name = customMissionQuery.Name,
             InspectionFrequency = customMissionQuery.InspectionFrequency,
+            AssetCode = customMissionQuery.AssetCode,
             Area = area
         };
 
@@ -466,6 +470,7 @@ public class MissionController : ControllerBase
             Status = MissionStatus.Pending,
             DesiredStartTime = customMissionQuery.DesiredStartTime ?? DateTimeOffset.UtcNow,
             Tasks = missionTasks,
+            AssetCode = customMissionQuery.AssetCode,
             Area = area,
             MapMetadata = new MapMetadata()
         };

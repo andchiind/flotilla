@@ -25,6 +25,8 @@ namespace Api.Database.Models
         public MissionRun? LastRun { get; set; }
 
         [Required]
-        public Area Area { get; set; }
+        public string AssetCode { get; set; }
+
+        public Area? Area { get; set; }
     }
 }

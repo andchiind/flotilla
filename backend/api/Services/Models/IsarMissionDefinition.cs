@@ -98,7 +98,7 @@ namespace Api.Services.Models
                 { "map", mission.MapMetadata?.MapName },
                 { "description", mission.Description },
                 { "estimated_duration", mission.EstimatedDuration.ToString() },
-                { "asset_code", mission.Area.Name },
+                { "asset_code", mission.AssetCode },
                 { "mission_name", mission.Name },
                 { "status_reason", mission.StatusReason }
             };

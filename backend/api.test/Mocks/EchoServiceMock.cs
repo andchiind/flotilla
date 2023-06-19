@@ -48,5 +48,10 @@ namespace Api.Test.Mocks
             await Task.Run(() => Thread.Sleep(1));
             return new EchoPoseResponse();
         }
+
+        public Task<EchoMission> GetMissionByPath(string relativePath)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

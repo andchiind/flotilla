@@ -7,7 +7,6 @@ public static class InitDb
     private static readonly List<Robot> robots = GetRobots();
     private static readonly List<Asset> assets = GetAssets();
     private static readonly List<Installation> installations = GetInstallations();
-    private static readonly List<AssetDeck> assetDecks = GetAssetDecks();
     private static readonly List<Deck> decks = GetDecks();
     private static readonly List<Area> areas = GetAreas();
     private static readonly List<Source> sources = GetSources();
@@ -166,6 +165,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 1",
             Id = Guid.NewGuid().ToString(),
+            AssetCode = areas[0].Deck.Installation.Asset.ShortName,
             Area = areas[0],
             Source = sources[0],
             Comment = "Interesting comment",
@@ -177,6 +177,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 2",
             Id = Guid.NewGuid().ToString(),
+            AssetCode = areas[1].Deck.Installation.Asset.ShortName,
             Area = areas[1],
             Source = sources[1],
             InspectionFrequency = TimeSpan.Parse("7:00:0:0"),
@@ -187,6 +188,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 3",
             Id = Guid.NewGuid().ToString(),
+            AssetCode = areas[1].Deck.Installation.Asset.ShortName,
             Area = areas[1],
             Source = sources[1],
             LastRun = null
@@ -201,6 +203,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 1",
             Robot = robots[0],
+            AssetCode = areas[0].Deck.Installation.Asset.ShortName,
             Area = areas[0],
             MissionId = missionDefinitions[0].Id,
             Status = MissionStatus.Successful,
@@ -213,6 +216,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 2",
             Robot = robots[1],
+            AssetCode = areas[1].Deck.Installation.Asset.ShortName,
             Area = areas[1],
             MissionId = missionDefinitions[0].Id,
             Status = MissionStatus.Successful,
@@ -225,6 +229,7 @@ public static class InitDb
         {
             Name = "Placeholder Mission 3",
             Robot = robots[2],
+            AssetCode = areas[1].Deck.Installation.Asset.ShortName,
             Area = areas[1],
             MissionId = missionDefinitions[1].Id,
             Status = MissionStatus.Successful,
@@ -234,19 +239,6 @@ public static class InitDb
         };
 
         return new List<MissionRun>(new[] { mission1, mission2, mission3 });
-    }
-
-    private static List<AssetDeck> GetAssetDecks()
-    {
-        var assetDeck1 = new AssetDeck
-        {
-            Id = "TestId",
-            DeckName = "Placeholder deck 1",
-            AssetCode = "Placeholder asset",
-            DefaultLocalizationPose = new Pose()
-        };
-
-        return new List<AssetDeck>(new[] { assetDeck1 });
     }
 
     public static void PopulateDb(FlotillaDbContext context)
@@ -291,7 +283,6 @@ public static class InitDb
             mission.Tasks = tasks;
         }
         context.AddRange(robots);
-        context.AddRange(assetDecks);
         context.AddRange(missionDefinitions);
         context.AddRange(missionRuns);
         context.SaveChanges();
