@@ -125,7 +125,7 @@ public static class InitDb
             Installation = decks[0].Installation,
             Asset = decks[0].Installation.Asset,
             Name = "AP320",
-            Map = new MapMetadata(),
+            MapMetadata = new MapMetadata(),
             DefaultLocalizationPose = new Pose {},
             SafePositions = new List<SafePosition>()
         };
@@ -137,7 +137,7 @@ public static class InitDb
             Installation = decks[0].Installation,
             Asset = decks[0].Installation.Asset,
             Name = "AP330",
-            Map = new MapMetadata(),
+            MapMetadata = new MapMetadata(),
             DefaultLocalizationPose = new Pose {},
             SafePositions = new List<SafePosition>()
         };
@@ -149,7 +149,7 @@ public static class InitDb
             Installation = decks[0].Installation,
             Asset = decks[0].Installation.Asset,
             Name = "testArea",
-            Map = new MapMetadata(),
+            MapMetadata = new MapMetadata(),
             DefaultLocalizationPose = new Pose { },
             SafePositions = new List<SafePosition>()
         };

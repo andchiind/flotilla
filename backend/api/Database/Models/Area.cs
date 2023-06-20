@@ -23,7 +23,7 @@ namespace Api.Database.Models
         public string Name { get; set; }
 
         [Required]
-        public MapMetadata Map { get; set; }
+        public MapMetadata MapMetadata { get; set; }
 
         [Required]
         public Pose DefaultLocalizationPose { get; set; }
