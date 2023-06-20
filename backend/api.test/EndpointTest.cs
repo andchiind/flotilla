@@ -214,8 +214,10 @@ namespace Api.Test
         public async Task AreaTest()
         {
             // Arrange
-            string testAsset = "testAsset";
-            string testDeck = "testDeck";
+            string testAsset = "TestAsset";
+            string testInstallation = "TestInstallation";
+            string testDeck = "testDeck2";
+            string testArea = "testArea";
             string areaUrl = $"/areas";
             var testPose = new Pose
             {
@@ -237,7 +239,9 @@ namespace Api.Test
             var query = new CreateAreaQuery
             {
                 AssetCode = testAsset,
-                AreaName = testDeck,
+                InstallationName = testInstallation,
+                DeckName = testDeck,
+                AreaName = testArea,
                 DefaultLocalizationPose = testPose
             };
 
@@ -261,8 +265,10 @@ namespace Api.Test
         {
             // Arrange - Add Safe Position
             string testAsset = "testAsset";
+            string testInstallation = "testInstallation";
+            string testDeck = "testDeck";
             string testArea = "testArea";
-            string addSafePositionUrl = $"/areas/{testAsset}/{testArea}/safe-position";
+            string addSafePositionUrl = $"/areas/{testAsset}/{testInstallation}/{testDeck}/{testArea}/safe-position";
             var testPosition = new Position
             {
                 X = 1,

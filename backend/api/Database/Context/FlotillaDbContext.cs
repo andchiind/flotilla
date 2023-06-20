@@ -68,6 +68,10 @@ public class FlotillaDbContext : DbContext
             poseBuilder.OwnsOne(pose => pose.Position);
             poseBuilder.OwnsOne(pose => pose.Orientation);
         });
+        modelBuilder.Entity<Area>().HasOne(a => a.Deck);
+        modelBuilder.Entity<Deck>().HasOne(a => a.Installation);
+        modelBuilder.Entity<Installation>().HasOne(a => a.Asset);
+
         modelBuilder.Entity<SafePosition>().OwnsOne(s => s.Pose, poseBuilder =>
         {
             poseBuilder.OwnsOne(pose => pose.Position);

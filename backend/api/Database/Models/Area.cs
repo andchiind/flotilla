@@ -12,7 +12,7 @@ namespace Api.Database.Models
 
         [Required]
         [MaxLength(200)]
-        public Deck Deck { get; set; }
+        public virtual Deck Deck { get; set; }
 
         [Required]
         [MaxLength(200)]

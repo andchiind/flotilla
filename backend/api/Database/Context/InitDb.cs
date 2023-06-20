@@ -96,8 +96,8 @@ public static class InitDb
         {
             Id = Guid.NewGuid().ToString(),
             Asset = assets[0],
-            Name = "Johan Sverdrup",
-            ShortName = "JSV"
+            Name = "Johan Sverdrup - P1",
+            ShortName = "P1"
         };
 
         return new List<Installation>(new Installation[] { installation1 });
@@ -109,7 +109,7 @@ public static class InitDb
         {
             Id = Guid.NewGuid().ToString(),
             Installation = installations[0],
-            Name = "Deck 1"
+            Name = "TestDeck"
         };
 
         return new List<Deck>(new Deck[] { deck1 });
@@ -142,7 +142,7 @@ public static class InitDb
             Id = "TestId",
             Deck = decks[0],
             Name = "testArea",
-            Map = new MissionMap { },
+            Map = new MapMetadata(),
             DefaultLocalizationPose = new Pose { },
             SafePositions = new List<SafePosition>()
         };

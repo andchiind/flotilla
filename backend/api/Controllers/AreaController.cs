@@ -126,7 +126,7 @@ namespace Api.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
-        [Route("{asset}/{name}/safe-position")]
+        [Route("{asset}/{installationName}/{deckName}/{areaName}/safe-position")]
         [ProducesResponseType(typeof(Area), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -134,29 +134,33 @@ namespace Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<Area>> AddSafePosition(
             [FromRoute] string asset,
-            [FromRoute] string name,
+            [FromRoute] string installationName,
+            [FromRoute] string deckName,
+            [FromRoute] string areaName,
             [FromBody] Pose safePosition
         )
         {
             _logger.LogInformation("Adding new safe position");
             try
             {
-                var area = await _areaService.AddSafePosition(asset, name, new SafePosition(safePosition));
+                var area = await _areaService.AddSafePosition(asset, areaName, new SafePosition(safePosition));
                 if (area != null)
                 {
-                    _logger.LogInformation("Succesfully added new safe position for asset '{assetId}' and name '{name}'", asset, name);
+                    _logger.LogInformation("Succesfully added new safe position for asset '{assetId}' and name '{name}'", asset, areaName);
                     return CreatedAtAction(nameof(GetAreaById), new { id = area.Id }, area); ;
                 }
                 else
                 {
-                    _logger.LogInformation("Creating Area for asset '{assetId}' and name '{name}'", asset, name);
+                    _logger.LogInformation("Creating Area for asset '{assetId}' and name '{name}'", asset, areaName);
                     // Cloning to avoid tracking same object
                     var tempPose = ObjectCopier.Clone(safePosition);
                     area = await _areaService.Create(
                         new CreateAreaQuery
                         {
                             AssetCode = asset,
-                            AreaName = name,
+                            AreaName = areaName,
+                            InstallationName = installationName,
+                            DeckName = deckName,
                             DefaultLocalizationPose = new Pose()
                         },
                         new List<Pose> { tempPose }
