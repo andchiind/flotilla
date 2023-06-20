@@ -19,7 +19,7 @@ namespace Api.Services
 
         public abstract Task<Area> Create(CreateAreaQuery newArea, List<Pose> safePositions);
 
-        public abstract Task<Area> Update(Area Area);
+        public abstract Task<Area> Update(Area area);
 
         public abstract Task<Area?> AddSafePosition(string asset, string name, SafePosition safePosition);
 
@@ -60,7 +60,7 @@ namespace Api.Services
         public async Task<Area?> ReadById(string id)
         {
             return await GetAreas()
-                .FirstOrDefaultAsync(Area => Area.Id.Equals(id));
+                .FirstOrDefaultAsync(a => a.Id.Equals(id));
         }
 
         public async Task<Area?> ReadByAssetAndName(Asset? asset, string name)

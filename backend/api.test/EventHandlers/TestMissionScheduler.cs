@@ -22,16 +22,16 @@ namespace Api.Test.EventHandlers
     [Collection("Database collection")]
     public class TestMissionScheduler : IDisposable
     {
-        private static readonly Asset TestAsset = new Asset
+        private static readonly Asset testAsset = new()
         {
             ShortName = "test",
             Name = "test test"
         };
-        private static readonly Installation TestInstallation = new Installation
+        private static readonly Installation testInstallation = new()
         {
             ShortName = "test",
             Name = "test test",
-            Asset = TestAsset
+            Asset = testAsset
         };
 
         private static MissionRun ScheduledMission =>
@@ -45,12 +45,12 @@ namespace Api.Test.EventHandlers
                 {
                     Deck = new Deck
                     {
-                        Installation = TestInstallation,
-                        Asset = TestAsset,
+                        Installation = testInstallation,
+                        Asset = testAsset,
                         Name = "testDeck"
                     },
-                    Asset = TestAsset,
-                    Installation = TestInstallation,
+                    Asset = testAsset,
+                    Installation = testInstallation,
                     Name = "testArea",
                     MapMetadata = new MapMetadata()
                     {
