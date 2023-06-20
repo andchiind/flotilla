@@ -80,7 +80,7 @@ namespace Api.Controllers
                 _logger.LogError(e, "Error during GET of areas from database");
                 throw;
             }
-            
+
         }
 
         /// <summary>

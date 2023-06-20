@@ -67,7 +67,7 @@ namespace Api.Services
 
             var blobClient = containerClient.GetBlobClient(id);
 
-            List<MissionTask>? content = null;
+            List<MissionTask>? content;
             try
             {
                 content = blobClient.DownloadContent().Value.Content.ToObjectFromJson<List<MissionTask>>();
@@ -84,7 +84,7 @@ namespace Api.Services
         {
             var blobClient = new BlobClient(new Uri(url));
 
-            List<MissionTask>? content = null;
+            List<MissionTask>? content;
             try
             {
                 content = blobClient.DownloadContent().Value.Content.ToObjectFromJson<List<MissionTask>>();

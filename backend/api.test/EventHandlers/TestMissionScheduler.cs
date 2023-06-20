@@ -22,12 +22,12 @@ namespace Api.Test.EventHandlers
     [Collection("Database collection")]
     public class TestMissionScheduler : IDisposable
     {
-        private static Asset TestAsset = new Asset
+        private static readonly Asset TestAsset = new Asset
         {
             ShortName = "test",
             Name = "test test"
         };
-        private static Installation TestInstallation = new Installation
+        private static readonly Installation TestInstallation = new Installation
         {
             ShortName = "test",
             Name = "test test",
