@@ -109,6 +109,7 @@ public static class InitDb
         {
             Id = Guid.NewGuid().ToString(),
             Installation = installations[0],
+            Asset = installations[0].Asset,
             Name = "TestDeck"
         };
 
@@ -121,6 +122,8 @@ public static class InitDb
         {
             Id = Guid.NewGuid().ToString(),
             Deck = decks[0],
+            Installation = decks[0].Installation,
+            Asset = decks[0].Installation.Asset,
             Name = "AP320",
             Map = new MapMetadata(),
             DefaultLocalizationPose = new Pose {},
@@ -131,6 +134,8 @@ public static class InitDb
         {
             Id = Guid.NewGuid().ToString(),
             Deck = decks[0],
+            Installation = decks[0].Installation,
+            Asset = decks[0].Installation.Asset,
             Name = "AP330",
             Map = new MapMetadata(),
             DefaultLocalizationPose = new Pose {},
@@ -141,6 +146,8 @@ public static class InitDb
         {
             Id = "TestId",
             Deck = decks[0],
+            Installation = decks[0].Installation,
+            Asset = decks[0].Installation.Asset,
             Name = "testArea",
             Map = new MapMetadata(),
             DefaultLocalizationPose = new Pose { },

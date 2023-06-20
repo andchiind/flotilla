@@ -11,11 +11,15 @@ namespace Api.Database.Models
         public string Id { get; set; }
 
         [Required]
-        [MaxLength(200)]
-        public virtual Deck Deck { get; set; }
+        public Deck Deck { get; set; }
 
         [Required]
-        [MaxLength(200)]
+        public Installation Installation { get; set; }
+
+        [Required]
+        public Asset Asset { get; set; }
+
+        [Required]
         public string Name { get; set; }
 
         [Required]
