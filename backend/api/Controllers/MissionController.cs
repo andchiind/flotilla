@@ -257,7 +257,7 @@ public class MissionController : ControllerBase
                     .ToList();
                 break;
             case MissionSourceType.Custom:
-                missionTasks = _customMissionService.GetMissionTasksFromURL(missionDefinition.Source.SourceId);
+                missionTasks = await _customMissionService.GetMissionTasksFromMissionId(missionDefinition.Source.SourceId);
                 break;
             default:
                 throw new Exception($"Mission type {missionDefinition.Source.Type} is not accounted for");

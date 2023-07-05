@@ -11,73 +11,38 @@ namespace Api.Services
 
     public interface ICustomMissionService
     {
-        Task<Uri> UploadSource(List<MissionTask> tasks);
-        List<MissionTask>? GetMissionTasksFromMissionId(string id);
-        List<MissionTask>? GetMissionTasksFromURL(string url);
+        Task<string> UploadSource(List<MissionTask> tasks);
+        Task<List<MissionTask>?> GetMissionTasksFromMissionId(string id);
     }
 
     public class CustomMissionService : ICustomMissionService
     {
         private readonly IOptions<StorageOptions> _storageOptions;
+        private readonly IBlobService _blobService;
 
-        public CustomMissionService(IOptions<StorageOptions> storageOptions)
+        public CustomMissionService(IOptions<StorageOptions> storageOptions, IBlobService blobService)
         {
             _storageOptions = storageOptions;
+            _blobService = blobService;
         }
 
-        public async Task<bool> CreateContainer(string containerName)
+        public async Task<string> UploadSource(List<MissionTask> tasks)
         {
-            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            await containerClient.CreateIfNotExistsAsync();
-
-            return true;
-        }
-
-        public async Task<Uri> UploadFile(string fileName, Stream fileStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Uri> UploadSource(List<MissionTask> tasks)
-        {
-            var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(tasks)));
-
+            string json = JsonSerializer.Serialize(tasks);
             string id = Guid.NewGuid().ToString();
-            var taskUri = UploadFile(id, memoryStream);
+            _blobService.UploadJsonToBlob(json, id, _storageOptions.Value.CustomMissionContainerName, _storageOptions.Value.AccountName, false);
 
-            return taskUri;
+            return id;
         }
 
-        public List<MissionTask>? GetMissionTasksFromMissionId(string id)
+        public async Task<List<MissionTask>?> GetMissionTasksFromMissionId(string id)
         {
-            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
-            containerClient.CreateIfNotExists();
-
-            var blobClient = containerClient.GetBlobClient(id);
-
             List<MissionTask>? content;
             try
             {
-                content = blobClient.DownloadContent().Value.Content.ToObjectFromJson<List<MissionTask>>();
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-
-            return content;
-        }
-
-        public List<MissionTask>? GetMissionTasksFromURL(string url)
-        {
-            var blobClient = new BlobClient(new Uri(url));
-
-            List<MissionTask>? content;
-            try
-            {
-                content = blobClient.DownloadContent().Value.Content.ToObjectFromJson<List<MissionTask>>();
+                var rawContent = await _blobService.DownloadBlob(id, _storageOptions.Value.CustomMissionContainerName, _storageOptions.Value.AccountName);
+                var rawBinaryContent = new BinaryData(rawContent);
+                content = rawBinaryContent.ToObjectFromJson<List<MissionTask>>();
             }
             catch (Exception)
             {
