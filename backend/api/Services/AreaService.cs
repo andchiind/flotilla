@@ -1,6 +1,7 @@
 ﻿using Api.Controllers.Models;
 using Api.Database.Context;
 using Api.Database.Models;
+using Api.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services
@@ -128,26 +129,26 @@ namespace Api.Services
             var asset = await _assetService.ReadByName(newAreaQuery.AssetCode);
             if (asset == null)
             {
-                throw new Exception();
+                throw new AssetNotFoundException($"No asset with name {newAreaQuery.AssetCode} could be found");
             }
 
             var installation = await _installationService.ReadByAssetAndName(asset, newAreaQuery.InstallationName);
             if (installation == null)
             {
-                throw new Exception();
+                throw new InstallationNotFoundException($"No installation with name {newAreaQuery.InstallationName} could be found");
             }
 
             var deck = await _deckService.ReadByAssetAndInstallationAndName(asset, installation, newAreaQuery.DeckName);
             if (deck == null)
             {
-                throw new Exception();
+                throw new DeckNotFoundException($"No deck with name {newAreaQuery.DeckName} could be found");
             }
 
             var existingArea = await ReadByAssetAndInstallationAndDeckAndName(
                 asset, installation, deck, newAreaQuery.AreaName);
             if (existingArea != null)
             {
-                throw new Exception();
+                throw new AreaNotFoundException($"No area with name {newAreaQuery.AreaName} could be found");
             }
 
             var newArea = new Area

@@ -2,6 +2,7 @@
 using Api.Database.Context;
 using Api.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Api.Utilities;
 
 namespace Api.Services
 {
@@ -93,16 +94,15 @@ namespace Api.Services
 
         public async Task<Deck> Create(CreateDeckQuery newDeckQuery)
         {
-            // TODO: use asset service to get asset by asset code. Return exception if null
             var asset = await _assetService.ReadByName(newDeckQuery.AssetCode);
             if (asset == null)
             {
-                throw new Exception();
+                throw new AssetNotFoundException($"No asset with name {newDeckQuery.AssetCode} could be found");
             }
             var installation = await _installationService.ReadByAssetAndName(asset, newDeckQuery.InstallationCode);
             if (installation == null)
             {
-                throw new Exception();
+                throw new InstallationNotFoundException($"No installation with name {newDeckQuery.InstallationCode} could be found");
             }
             var deck = await ReadByAssetAndInstallationAndName(asset, installation, newDeckQuery.Name);
             if (deck == null)

@@ -362,7 +362,7 @@ public class MissionController : ControllerBase
 
         if (area == null)
         {
-            // TODO: here is the problem. We are not specifying area
+            // This is disabled for now as the Area database is not yet populated
             //return NotFound($"Could not find area with name {scheduledMissionQuery.AreaName} in asset {scheduledMissionQuery.AssetCode}");
         }
 
@@ -381,8 +381,6 @@ public class MissionController : ControllerBase
             AssetCode = scheduledMissionQuery.AssetCode,
             Area = area
         };
-
-        // TODO: !!!!! MissionDefinition ID is not yet set here!
 
         var missionRun = new MissionRun
         {
@@ -428,9 +426,6 @@ public class MissionController : ControllerBase
         [FromBody] CustomMissionQuery customMissionQuery
     )
     {
-
-        // TODO: only allow admins
-
         var robot = await _robotService.ReadById(customMissionQuery.RobotId);
         if (robot is null)
             return NotFound($"Could not find robot with id {customMissionQuery.RobotId}");
