@@ -9,18 +9,18 @@ using Microsoft.Extensions.Options;
 namespace Api.Services
 {
 
-    public interface ISourceService
+    public interface ICustomMissionService
     {
-        Task<Uri> UploadSource(string id, List<MissionTask> tasks);
+        Task<Uri> UploadSource(List<MissionTask> tasks);
         List<MissionTask>? GetMissionTasksFromMissionId(string id);
         List<MissionTask>? GetMissionTasksFromURL(string url);
     }
 
-    public class SourceService : ISourceService
+    public class CustomMissionService : ICustomMissionService
     {
         private readonly IOptions<StorageOptions> _storageOptions;
 
-        public SourceService(IOptions<StorageOptions> storageOptions)
+        public CustomMissionService(IOptions<StorageOptions> storageOptions)
         {
             _storageOptions = storageOptions;
         }
@@ -36,20 +36,14 @@ namespace Api.Services
 
         public async Task<Uri> UploadFile(string fileName, Stream fileStream)
         {
-            var blobServiceClient = new BlobServiceClient(_storageOptions.Value.ConnectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(_storageOptions.Value.CustomMissionContainerName);
-            containerClient.CreateIfNotExists();
-
-            var blobClient = containerClient.GetBlobClient(fileName);
-            _ = await blobClient.UploadAsync(fileStream, true);
-            //var hash = $"0x{BitConverter.ToString(blobProperties.Value.ContentHash).Replace("-", string.Empty)}";
-            return blobClient.Uri;
+            throw new NotImplementedException();
         }
 
-        public Task<Uri> UploadSource(string id, List<MissionTask> tasks)
+        public Task<Uri> UploadSource(List<MissionTask> tasks)
         {
             var memoryStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(tasks)));
 
+            string id = Guid.NewGuid().ToString();
             var taskUri = UploadFile(id, memoryStream);
 
             return taskUri;

@@ -237,14 +237,14 @@ namespace Api.EventHandlers
         {
             if (robot.CurrentArea != null)
             {
-                if (newCurrentAsset.Equals(robot.CurrentArea.Deck.Installation.Asset.ShortName, StringComparison.Ordinal))
+                if (newCurrentAsset.Equals(robot.CurrentArea.Asset.AssetCode, StringComparison.Ordinal))
                 {
                     return;
                 }
 
-                updatedFields.Add($"\nCurrentAsset ({robot.CurrentArea.Deck.Installation.Asset.ShortName} -> {newCurrentAsset})\n");
+                updatedFields.Add($"\nCurrentAsset ({robot.CurrentArea.Asset.AssetCode} -> {newCurrentAsset})\n");
 
-                robot.CurrentArea.Deck.Installation.Asset.ShortName = newCurrentAsset;
+                robot.CurrentArea.Asset.AssetCode = newCurrentAsset;
             }
 
         }
@@ -253,7 +253,7 @@ namespace Api.EventHandlers
         private async void OnMissionUpdate(object? sender, MqttReceivedArgs mqttArgs)
         {
             var provider = GetServiceProvider();
-            var missionService = provider.GetRequiredService<IMissionRunService>();
+            var missionRunService = provider.GetRequiredService<IMissionRunService>();
             var robotService = provider.GetRequiredService<IRobotService>();
             var robotModelService = provider.GetRequiredService<IRobotModelService>();
 
@@ -273,12 +273,12 @@ namespace Api.EventHandlers
                 return;
             }
 
-            var flotillaMission = await missionService.UpdateMissionStatusByIsarMissionId(
+            var flotillaMissionRun = await missionRunService.UpdateMissionRunStatusByIsarMissionId(
                 isarMission.MissionId,
                 status
             );
 
-            if (flotillaMission is null)
+            if (flotillaMissionRun is null)
             {
                 _logger.LogError(
                     "No mission found with ISARMissionId '{isarMissionId}'. Could not update status to '{status}'",
@@ -290,7 +290,7 @@ namespace Api.EventHandlers
 
             _logger.LogInformation(
                 "Mission '{id}' (ISARMissionID='{isarId}') status updated to '{status}' for robot '{robotName}' with ISAR id '{isarId}'",
-                flotillaMission.Id,
+                flotillaMissionRun.Id,
                 isarMission.MissionId,
                 isarMission.Status,
                 isarMission.RobotName,
@@ -308,8 +308,8 @@ namespace Api.EventHandlers
                 return;
             }
 
-            robot.Status = flotillaMission.IsCompleted ? RobotStatus.Available : RobotStatus.Busy;
-            if (flotillaMission.IsCompleted)
+            robot.Status = flotillaMissionRun.IsCompleted ? RobotStatus.Available : RobotStatus.Busy;
+            if (flotillaMissionRun.IsCompleted)
             {
                 robot.CurrentMissionId = null;
             }
@@ -322,7 +322,7 @@ namespace Api.EventHandlers
                 robot.Status
             );
 
-            if (flotillaMission.IsCompleted)
+            if (flotillaMissionRun.IsCompleted)
             {
                 int timeRangeInDays = _configuration.GetValue<int>(
                     "TimeRangeForMissionDurationEstimationInDays"
@@ -330,7 +330,7 @@ namespace Api.EventHandlers
                 long minEpochTime = DateTimeOffset.Now
                     .AddDays(-timeRangeInDays)
                     .ToUnixTimeSeconds();
-                var missionsForEstimation = await missionService.ReadAll(
+                var missionRunsForEstimation = await missionRunService.ReadAll(
                     new MissionRunQueryStringParameters
                     {
                         MinDesiredStartTime = minEpochTime,
@@ -339,7 +339,7 @@ namespace Api.EventHandlers
                     }
                 );
                 var model = robot.Model;
-                model.UpdateAverageDurationPerTag(missionsForEstimation);
+                model.UpdateAverageDurationPerTag(missionRunsForEstimation);
 
                 await robotModelService.Update(model);
 
@@ -354,7 +354,7 @@ namespace Api.EventHandlers
         private async void OnTaskUpdate(object? sender, MqttReceivedArgs mqttArgs)
         {
             var provider = GetServiceProvider();
-            var missionService = provider.GetRequiredService<IMissionRunService>();
+            var missionRunService = provider.GetRequiredService<IMissionRunService>();
             var task = (IsarTaskMessage)mqttArgs.Message;
             IsarTaskStatus status;
             try
@@ -371,7 +371,7 @@ namespace Api.EventHandlers
                 return;
             }
 
-            bool success = await missionService.UpdateTaskStatusByIsarTaskId(
+            bool success = await missionRunService.UpdateTaskStatusByIsarTaskId(
                 task.MissionId,
                 task.TaskId,
                 status
@@ -392,7 +392,7 @@ namespace Api.EventHandlers
         private async void OnStepUpdate(object? sender, MqttReceivedArgs mqttArgs)
         {
             var provider = GetServiceProvider();
-            var missionService = provider.GetRequiredService<IMissionRunService>();
+            var missionRunService = provider.GetRequiredService<IMissionRunService>();
 
             var step = (IsarStepMessage)mqttArgs.Message;
 
@@ -418,7 +418,7 @@ namespace Api.EventHandlers
                 return;
             }
 
-            bool success = await missionService.UpdateStepStatusByIsarStepId(
+            bool success = await missionRunService.UpdateStepStatusByIsarStepId(
                 step.MissionId,
                 step.TaskId,
                 step.StepId,

@@ -108,11 +108,11 @@ namespace Api.Test
         {
             string url = "/missions/runs";
             var response = await _client.GetAsync(url);
-            var missions = await response.Content.ReadFromJsonAsync<List<MissionRun>>(
+            var missionRuns = await response.Content.ReadFromJsonAsync<List<MissionRun>>(
                 _serializerOptions
             );
             Assert.True(response.IsSuccessStatusCode);
-            Assert.True(missions != null && missions.Count == 3);
+            Assert.True(missionRuns != null && missionRuns.Count == 3);
         }
 
         [Fact]
@@ -190,7 +190,7 @@ namespace Api.Test
             var query = new ScheduledMissionQuery
             {
                 RobotId = robotId,
-                AssetCode = "JSV",
+                AssetCode = "test",
                 AreaName = "testArea",
                 EchoMissionId = 95,
                 DesiredStartTime = DateTimeOffset.UtcNow
@@ -204,10 +204,10 @@ namespace Api.Test
 
             // Assert
             Assert.True(response.IsSuccessStatusCode);
-            var mission = await response.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
-            Assert.True(mission != null);
-            Assert.True(mission.Id != null);
-            Assert.True(mission.Status == MissionStatus.Pending);
+            var missionRun = await response.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
+            Assert.True(missionRun != null);
+            Assert.True(missionRun.Id != null);
+            Assert.True(missionRun.Status == MissionStatus.Pending);
         }
 
         [Fact]
@@ -218,6 +218,9 @@ namespace Api.Test
             string testInstallation = "TestInstallation";
             string testDeck = "testDeck2";
             string testArea = "testArea";
+            string assetUrl = $"/assets";
+            string installationUrl = $"/installations";
+            string deckUrl = $"/decks";
             string areaUrl = $"/areas";
             var testPose = new Pose
             {
@@ -236,7 +239,27 @@ namespace Api.Test
                 }
             };
 
-            var query = new CreateAreaQuery
+            var assetQuery = new CreateAssetQuery
+            {
+                AssetCode = testAsset,
+                Name = testAsset
+            };
+
+            var installationQuery = new CreateInstallationQuery
+            {
+                AssetCode = testAsset,
+                InstallationCode = testInstallation,
+                Name = testInstallation
+            };
+
+            var deckQuery = new CreateDeckQuery
+            {
+                AssetCode = testAsset,
+                InstallationCode = testInstallation,
+                Name = testDeck
+            };
+
+            var areaQuery = new CreateAreaQuery
             {
                 AssetCode = testAsset,
                 InstallationName = testInstallation,
@@ -245,18 +268,42 @@ namespace Api.Test
                 DefaultLocalizationPose = testPose
             };
 
-            var content = new StringContent(
-                JsonSerializer.Serialize(query),
+            var assetContent = new StringContent(
+                JsonSerializer.Serialize(assetQuery),
+                null,
+                "application/json"
+            );
+
+            var installationContent = new StringContent(
+                JsonSerializer.Serialize(installationQuery),
+                null,
+                "application/json"
+            );
+
+            var deckContent = new StringContent(
+                JsonSerializer.Serialize(deckQuery),
+                null,
+                "application/json"
+            );
+
+            var areaContent = new StringContent(
+                JsonSerializer.Serialize(areaQuery),
                 null,
                 "application/json"
             );
 
             // Act
-            var assetDeckResponse = await _client.PostAsync(areaUrl, content);
+            var assetResponse = await _client.PostAsync(assetUrl, assetContent);
+            var installationResponse = await _client.PostAsync(installationUrl, installationContent);
+            var deckResponse = await _client.PostAsync(deckUrl, deckContent);
+            var areaResponse = await _client.PostAsync(areaUrl, areaContent);
 
             // Assert
-            Assert.True(assetDeckResponse.IsSuccessStatusCode);
-            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
+            Assert.True(assetResponse.IsSuccessStatusCode);
+            Assert.True(installationResponse.IsSuccessStatusCode);
+            Assert.True(deckResponse.IsSuccessStatusCode);
+            Assert.True(areaResponse.IsSuccessStatusCode);
+            var assetDeck = await areaResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
             Assert.True(assetDeck != null);
         }
 
@@ -311,10 +358,10 @@ namespace Api.Test
 
             // Assert
             Assert.True(missionResponse.IsSuccessStatusCode);
-            var mission = await missionResponse.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
-            Assert.True(mission != null);
+            var missionRun = await missionResponse.Content.ReadFromJsonAsync<MissionRun>(_serializerOptions);
+            Assert.True(missionRun != null);
             Assert.True(
-                JsonSerializer.Serialize(mission.Tasks[0].RobotPose.Position) ==
+                JsonSerializer.Serialize(missionRun.Tasks[0].RobotPose.Position) ==
                 JsonSerializer.Serialize(testPosition)
             );
         }

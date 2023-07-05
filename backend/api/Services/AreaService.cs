@@ -11,9 +11,9 @@ namespace Api.Services
 
         public abstract Task<Area?> ReadById(string id);
 
-        public abstract Task<IEnumerable<Area>> ReadByAsset(string asset);
+        public abstract Task<IEnumerable<Area>> ReadByAsset(string assetName);
 
-        public abstract Task<Area?> ReadByAssetAndName(string assetName, string name);
+        public abstract Task<Area?> ReadByAssetAndName(string assetName, string areaName);
 
         public abstract Task<Area> Create(CreateAreaQuery newArea);
 
@@ -21,7 +21,7 @@ namespace Api.Services
 
         public abstract Task<Area> Update(Area area);
 
-        public abstract Task<Area?> AddSafePosition(string asset, string name, SafePosition safePosition);
+        public abstract Task<Area?> AddSafePosition(string assetName, string areaName, SafePosition safePosition);
 
         public abstract Task<Area?> Delete(string id);
 
@@ -40,10 +40,17 @@ namespace Api.Services
     public class AreaService : IAreaService
     {
         private readonly FlotillaDbContext _context;
+        private readonly IAssetService _assetService;
+        private readonly IInstallationService _installationService;
+        private readonly IDeckService _deckService;
 
-        public AreaService(FlotillaDbContext context)
+        public AreaService(
+            FlotillaDbContext context, IAssetService assetService, IInstallationService installationService, IDeckService deckService)
         {
             _context = context;
+            _assetService = assetService;
+            _installationService = installationService;
+            _deckService = deckService;
         }
 
         public async Task<IEnumerable<Area>> ReadAll()
@@ -54,7 +61,7 @@ namespace Api.Services
         private IQueryable<Area> GetAreas()
         {
             return _context.Areas.Include(a => a.SafePositions)
-                .Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset);
+                .Include(a => a.Deck).Include(d => d.Installation).Include(i => i.Asset);
         }
 
         public async Task<Area?> ReadById(string id)
@@ -63,141 +70,97 @@ namespace Api.Services
                 .FirstOrDefaultAsync(a => a.Id.Equals(id));
         }
 
-        public async Task<Area?> ReadByAssetAndName(Asset? asset, string name)
+        public async Task<Area?> ReadByAssetAndName(Asset? asset, string areaName)
         {
             if (asset == null)
                 return null;
+
             return await _context.Areas.Where(a =>
-                a.Name.ToLower().Equals(name.ToLower()) &&
+                a.Name.ToLower().Equals(areaName.ToLower()) &&
                 a.Asset.Equals(asset)
+            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
+        }
+
+        public async Task<Area?> ReadByAssetAndName(string assetName, string areaName)
+        {
+            var asset = await _assetService.ReadByName(assetName);
+            if (asset == null)
+                return null;
+
+            return await _context.Areas.Where(a =>
+                a.Asset.Equals(asset) &&
+                a.Name.ToLower().Equals(areaName.ToLower())
             ).Include(a => a.SafePositions).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Area>> ReadByAsset(string assetName)
         {
-            var asset = await ReadAssetByName(assetName);
+            var asset = await _assetService.ReadByName(assetName);
             if (asset == null)
                 return new List<Area>();
+
             return await _context.Areas.Where(a =>
                 a.Asset.Equals(asset)).Include(a => a.SafePositions).ToListAsync();
         }
 
-        public async Task<Area?> ReadByAssetAndName(string assetName, string name)
-        {
-            // TODO: can we assume that this combination will be unique? Are area names specific enough?
-            var asset = await ReadAssetByName(assetName);
-            if (asset == null)
-                return null;
-            return await _context.Areas.Where(a =>
-                a.Asset.Equals(asset) &&
-                a.Name.ToLower().Equals(name.ToLower())
-            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
-        }
-
-        public async Task<Area?> ReadAreaByAssetAndInstallationAndDeckAndName(Asset? asset, Installation? installation, Deck? deck, string name)
+        public async Task<Area?> ReadByAssetAndInstallationAndDeckAndName(Asset? asset, Installation? installation, Deck? deck, string areaName)
         {
             if (asset == null || installation == null || deck == null)
                 return null;
+
             return await _context.Areas.Where(a =>
                 a.Deck.Equals(deck) &&
                 a.Installation.Equals(installation) &&
                 a.Asset.Equals(asset) &&
-                a.Name.ToLower().Equals(name.ToLower())
-            ).Include(a => a.Deck).ThenInclude(d => d.Installation).ThenInclude(i => i.Asset)
+                a.Name.ToLower().Equals(areaName.ToLower())
+            ).Include(a => a.Deck).Include(d => d.Installation).Include(i => i.Asset)
                 .Include(a => a.SafePositions).FirstOrDefaultAsync();
         }
 
-        public async Task<Deck?> ReadDeckByAssetAndInstallationAndName(Asset? asset, Installation? installation, string name)
+        public async Task<Area> Create(CreateAreaQuery newAreaQuery, List<Pose> positions)
         {
-            if (asset == null || installation == null)
-                return null;
-            return await _context.Decks.Where(a =>
-                a.Installation.Equals(installation) &&
-                a.Asset.Equals(asset) &&
-                a.Name.ToLower().Equals(name.ToLower())
-            ).Include(d => d.Installation).Include(i => i.Asset).FirstOrDefaultAsync();
-        }
-
-        public async Task<Installation?> ReadInstallationByAssetAndName(Asset? asset, string name)
-        {
-            if (asset == null)
-                return null;
-            return await _context.Installations.Where(a =>
-                a.Asset.Equals(asset) &&
-                a.Name.ToLower().Equals(name.ToLower())
-            ).Include(i => i.Asset).FirstOrDefaultAsync();
-        }
-
-        public async Task<Asset?> ReadAssetByName(string asset)
-        {
-            return await _context.Assets.Where(a =>
-                a.ShortName.ToLower().Equals(asset.ToLower())
-            ).FirstOrDefaultAsync();
-        }
-
-        public async Task<Area> Create(CreateAreaQuery newAreaQuery, List<Pose> safePositions)
-        {
-            var sp = new List<SafePosition>();
-            foreach (var p in safePositions)
+            var safePositions = new List<SafePosition>();
+            foreach (var pose in positions)
             {
-                sp.Add(new SafePosition(p));
+                safePositions.Add(new SafePosition(pose));
             }
 
-            var asset = await ReadAssetByName(newAreaQuery.AssetCode);
+            var asset = await _assetService.ReadByName(newAreaQuery.AssetCode);
             if (asset == null)
             {
-                asset = new Asset
-                {
-                    Name = "", // TODO:
-                    ShortName = newAreaQuery.AssetCode
-                };
-                await _context.Assets.AddAsync(asset);
-                await _context.SaveChangesAsync();
+                throw new Exception();
             }
 
-            var installation = await ReadInstallationByAssetAndName(asset, newAreaQuery.InstallationName);
+            var installation = await _installationService.ReadByAssetAndName(asset, newAreaQuery.InstallationName);
             if (installation == null)
             {
-                installation = new Installation
-                {
-                    Asset = asset,
-                    Name = "", // TODO:
-                    ShortName = newAreaQuery.InstallationName
-                };
-                await _context.Installations.AddAsync(installation);
-                await _context.SaveChangesAsync();
+                throw new Exception();
             }
 
-            var deck = await ReadDeckByAssetAndInstallationAndName(asset, installation, newAreaQuery.DeckName);
+            var deck = await _deckService.ReadByAssetAndInstallationAndName(asset, installation, newAreaQuery.DeckName);
             if (deck == null)
             {
-                deck = new Deck
-                {
-                    Installation = installation,
-                    Asset = asset,
-                    Name = newAreaQuery.DeckName
-                };
-                await _context.Decks.AddAsync(deck);
-                await _context.SaveChangesAsync();
+                throw new Exception();
             }
 
-            var existingArea = await ReadAreaByAssetAndInstallationAndDeckAndName(
+            var existingArea = await ReadByAssetAndInstallationAndDeckAndName(
                 asset, installation, deck, newAreaQuery.AreaName);
             if (existingArea != null)
             {
-                // TODO: maybe just append safe positions, or return an error
+                throw new Exception();
             }
 
             var newArea = new Area
             {
                 Name = newAreaQuery.AreaName,
                 DefaultLocalizationPose = newAreaQuery.DefaultLocalizationPose,
-                SafePositions = sp,
-                Map = new MissionMap(),
+                SafePositions = safePositions,
+                MapMetadata = new MapMetadata(),
                 Deck = deck,
                 Installation = installation,
                 Asset = asset
             };
+
             await _context.Areas.AddAsync(newArea);
             await _context.SaveChangesAsync();
             return newArea;
@@ -209,13 +172,14 @@ namespace Api.Services
             return area;
         }
 
-        public async Task<Area?> AddSafePosition(string asset, string name, SafePosition safePosition)
+        public async Task<Area?> AddSafePosition(string assetName, string areaName, SafePosition safePosition)
         {
-            var area = await ReadByAssetAndName(asset, name);
+            var area = await ReadByAssetAndName(assetName, areaName);
             if (area is null)
             {
                 return null;
             }
+
             area.SafePositions.Add(safePosition);
             _context.Areas.Update(area);
             await _context.SaveChangesAsync();
