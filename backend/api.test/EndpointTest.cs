@@ -177,22 +177,26 @@ namespace Api.Test
         public async Task StartMissionTest()
         {
             // Arrange
-            string url = "/robots";
-            var response = await _client.GetAsync(url);
+            string robotUrl = "/robots";
+            string missionsUrl = "/missions";
+            var response = await _client.GetAsync(robotUrl);
             Assert.True(response.IsSuccessStatusCode);
             var robots = await response.Content.ReadFromJsonAsync<List<Robot>>(_serializerOptions);
             Assert.True(robots != null);
             var robot = robots[0];
             string robotId = robot.Id;
+            string testAsset = "TestAsset";
+            string testArea = "testArea";
+            string assetUrl = $"/assets";
+            int echoMissionId = 95;
 
             // Act
-            url = "/missions";
             var query = new ScheduledMissionQuery
             {
                 RobotId = robotId,
-                AssetCode = "test",
-                AreaName = "testArea",
-                EchoMissionId = 95,
+                AssetCode = testAsset,
+                AreaName = testArea,
+                EchoMissionId = echoMissionId,
                 DesiredStartTime = DateTimeOffset.UtcNow
             };
             var content = new StringContent(
@@ -200,7 +204,7 @@ namespace Api.Test
                 null,
                 "application/json"
             );
-            response = await _client.PostAsync(url, content);
+            response = await _client.PostAsync(missionsUrl, content);
 
             // Assert
             Assert.True(response.IsSuccessStatusCode);

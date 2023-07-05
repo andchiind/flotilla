@@ -48,10 +48,8 @@ public class MissionController : ControllerBase
     /// <summary>
     /// List all mission runs in the Flotilla database
     /// </summary>
-    /// <para> This query gets all missions </para>
-    /// <para> This query gets all mission runs </para>
     /// <remarks>
-    /// <para> This query gets all missions </para>
+    /// <para> This query gets all mission runs </para>
     /// </remarks>
     [HttpGet("runs")]
     [Authorize(Roles = Role.Any)]
