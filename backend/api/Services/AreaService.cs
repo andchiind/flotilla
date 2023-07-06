@@ -79,7 +79,8 @@ namespace Api.Services
             return await _context.Areas.Where(a =>
                 a.Name.ToLower().Equals(areaName.ToLower()) &&
                 a.Asset.Equals(asset)
-            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
+            ).Include(a => a.SafePositions).Include(a => a.Asset)
+                .Include(a => a.Installation).Include(a => a.Deck).FirstOrDefaultAsync();
         }
 
         public async Task<Area?> ReadByAssetAndName(string assetName, string areaName)
@@ -89,9 +90,10 @@ namespace Api.Services
                 return null;
 
             return await _context.Areas.Where(a =>
-                a.Asset.Equals(asset) &&
+                a.Asset.Id.Equals(asset.Id) &&
                 a.Name.ToLower().Equals(areaName.ToLower())
-            ).Include(a => a.SafePositions).FirstOrDefaultAsync();
+            ).Include(a => a.SafePositions).Include(a => a.Asset)
+                .Include(a => a.Installation).Include(a => a.Deck).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Area>> ReadByAsset(string assetName)
@@ -101,7 +103,8 @@ namespace Api.Services
                 return new List<Area>();
 
             return await _context.Areas.Where(a =>
-                a.Asset.Equals(asset)).Include(a => a.SafePositions).ToListAsync();
+                a.Asset.Equals(asset)).Include(a => a.SafePositions).Include(a => a.Asset)
+                .Include(a => a.Installation).Include(a => a.Deck).ToListAsync();
         }
 
         public async Task<Area?> ReadByAssetAndInstallationAndDeckAndName(Asset? asset, Installation? installation, Deck? deck, string areaName)

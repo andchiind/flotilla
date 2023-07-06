@@ -91,7 +91,7 @@ namespace Api.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
-        [Route("{asset}/{installationName}/{deckName}/{areaName}/safe-position")]
+        [Route("{assetName}/{installationName}/{deckName}/{areaName}/safe-position")]
         [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

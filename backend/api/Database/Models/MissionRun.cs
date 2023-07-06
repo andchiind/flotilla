@@ -11,8 +11,8 @@ namespace Api.Database.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
 
-        [Required]
-        public string MissionId { get; set; }
+        //[Required] // See "Drive to Safe Position" mission in RobotController.cs
+        public string? MissionId { get; set; }
 
         [Required]
         [MaxLength(200)]

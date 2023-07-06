@@ -102,6 +102,93 @@ namespace Api.Test
             GC.SuppressFinalize(this);
         }
 
+        private async Task PopulateAreaDb(string assetName, string installationName, string deckName, string areaName)
+        {
+            string assetUrl = $"/assets";
+            string installationUrl = $"/installations";
+            string deckUrl = $"/decks";
+            string areaUrl = $"/areas";
+            var testPose = new Pose
+            {
+                Position = new Position
+                {
+                    X = 1,
+                    Y = 2,
+                    Z = 2
+                },
+                Orientation = new Orientation
+                {
+                    X = 0,
+                    Y = 0,
+                    Z = 0,
+                    W = 1
+                }
+            };
+
+            var assetQuery = new CreateAssetQuery
+            {
+                AssetCode = assetName,
+                Name = assetName
+            };
+
+            var installationQuery = new CreateInstallationQuery
+            {
+                AssetCode = assetName,
+                InstallationCode = installationName,
+                Name = installationName
+            };
+
+            var deckQuery = new CreateDeckQuery
+            {
+                AssetCode = assetName,
+                InstallationCode = installationName,
+                Name = deckName
+            };
+
+            var areaQuery = new CreateAreaQuery
+            {
+                AssetCode = assetName,
+                InstallationName = installationName,
+                DeckName = deckName,
+                AreaName = areaName,
+                DefaultLocalizationPose = testPose
+            };
+
+            var assetContent = new StringContent(
+                JsonSerializer.Serialize(assetQuery),
+                null,
+                "application/json"
+            );
+
+            var installationContent = new StringContent(
+                JsonSerializer.Serialize(installationQuery),
+                null,
+                "application/json"
+            );
+
+            var deckContent = new StringContent(
+                JsonSerializer.Serialize(deckQuery),
+                null,
+                "application/json"
+            );
+
+            var areaContent = new StringContent(
+                JsonSerializer.Serialize(areaQuery),
+                null,
+                "application/json"
+            );
+
+            // Act
+            var assetResponse = await _client.PostAsync(assetUrl, assetContent);
+            Assert.NotNull(assetResponse);
+            var installationResponse = await _client.PostAsync(installationUrl, installationContent);
+            Assert.NotNull(installationResponse);
+            var deckResponse = await _client.PostAsync(deckUrl, deckContent);
+            Assert.NotNull(deckResponse);
+            var areaResponse = await _client.PostAsync(areaUrl, areaContent);
+            Assert.NotNull(areaResponse);
+        }
+
         #region MissionsController
         [Fact]
         public async Task MissionsTest()
@@ -341,6 +428,9 @@ namespace Api.Test
                 null,
                 "application/json"
             );
+
+            await PopulateAreaDb("testAsset", "testInstallation", "testDeck", "testArea");
+
             var areaResponse = await _client.PostAsync(addSafePositionUrl, content);
             Assert.True(areaResponse.IsSuccessStatusCode);
             var area = await areaResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);

@@ -810,6 +810,7 @@ public class RobotController : ControllerBase
             InspectionTarget = new Position(),
             TaskOrder = 0
         };
+        // TODO: The MissionId is nullable because of this mission
         var missionRun = new MissionRun
         {
             Name = "Drive to Safe Position",
