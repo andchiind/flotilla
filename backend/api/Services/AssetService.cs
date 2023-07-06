@@ -56,12 +56,12 @@ namespace Api.Services
                 .FirstOrDefaultAsync(a => a.Id.Equals(id));
         }
 
-        public async Task<Asset?> ReadByName(string assetName)
+        public async Task<Asset?> ReadByName(string assetCode)
         {
-            if (assetName == null)
+            if (assetCode == null)
                 return null;
             return await _context.Assets.Where(a =>
-                a.Name.ToLower().Equals(assetName.ToLower())
+                a.AssetCode.ToLower().Equals(assetCode.ToLower())
             ).FirstOrDefaultAsync();
         }
 

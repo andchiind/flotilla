@@ -12,11 +12,11 @@ namespace Api.Services
 
         public abstract Task<Installation?> ReadById(string id);
 
-        public abstract Task<IEnumerable<Installation>> ReadByAsset(string assetName);
+        public abstract Task<IEnumerable<Installation>> ReadByAsset(string assetCode);
 
-        public abstract Task<Installation?> ReadByAssetAndName(Asset asset, string installationName);
+        public abstract Task<Installation?> ReadByAssetAndName(Asset asset, string installationCode);
 
-        public abstract Task<Installation?> ReadByAssetAndName(string assetName, string installationName);
+        public abstract Task<Installation?> ReadByAssetAndName(string assetCode, string installationCode);
 
         public abstract Task<Installation> Create(CreateInstallationQuery newInstallation);
 
@@ -63,30 +63,30 @@ namespace Api.Services
                 .FirstOrDefaultAsync(a => a.Id.Equals(id));
         }
 
-        public async Task<IEnumerable<Installation>> ReadByAsset(string assetName)
+        public async Task<IEnumerable<Installation>> ReadByAsset(string assetCode)
         {
-            var asset = await _assetService.ReadByName(assetName);
+            var asset = await _assetService.ReadByName(assetCode);
             if (asset == null)
                 return new List<Installation>();
             return await _context.Installations.Where(a =>
-                a.Asset.Equals(asset)).ToListAsync();
+                a.Asset.Id.Equals(asset.Id)).ToListAsync();
         }
 
-        public async Task<Installation?> ReadByAssetAndName(Asset asset, string installationName)
+        public async Task<Installation?> ReadByAssetAndName(Asset asset, string installationCode)
         {
             return await _context.Installations.Where(a =>
-                a.Name.ToLower().Equals(installationName.ToLower()) &&
-                a.Asset.Equals(asset)).FirstOrDefaultAsync();
+                a.InstallationCode.ToLower().Equals(installationCode.ToLower()) &&
+                a.Asset.Id.Equals(asset.Id)).FirstOrDefaultAsync();
         }
 
-        public async Task<Installation?> ReadByAssetAndName(string assetName, string installationName)
+        public async Task<Installation?> ReadByAssetAndName(string assetCode, string installationCode)
         {
-            var asset = await _assetService.ReadByName(assetName);
+            var asset = await _assetService.ReadByName(assetCode);
             if (asset == null)
                 return null;
             return await _context.Installations.Where(a =>
-                a.Asset.Equals(asset) &&
-                a.Name.ToLower().Equals(installationName.ToLower())
+                a.Asset.Id.Equals(asset.Id) &&
+                a.InstallationCode.ToLower().Equals(installationCode.ToLower())
             ).FirstOrDefaultAsync();
         }
 

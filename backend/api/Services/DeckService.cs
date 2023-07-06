@@ -12,7 +12,7 @@ namespace Api.Services
 
         public abstract Task<Deck?> ReadById(string id);
 
-        public abstract Task<IEnumerable<Deck>> ReadByAsset(string assetName);
+        public abstract Task<IEnumerable<Deck>> ReadByAsset(string assetCode);
 
         public abstract Task<Deck?> ReadByName(string deckName);
 
@@ -65,13 +65,13 @@ namespace Api.Services
                 .FirstOrDefaultAsync(a => a.Id.Equals(id));
         }
 
-        public async Task<IEnumerable<Deck>> ReadByAsset(string assetName)
+        public async Task<IEnumerable<Deck>> ReadByAsset(string assetCode)
         {
-            var asset = await _assetService.ReadByName(assetName);
+            var asset = await _assetService.ReadByName(assetCode);
             if (asset == null)
                 return new List<Deck>();
             return await _context.Decks.Where(a =>
-                a.Asset.Equals(asset)).ToListAsync();
+                a.Asset.Id.Equals(asset.Id)).ToListAsync();
         }
 
         public async Task<Deck?> ReadByName(string deckName)
@@ -86,8 +86,8 @@ namespace Api.Services
         public async Task<Deck?> ReadByAssetAndInstallationAndName(Asset asset, Installation installation, string name)
         {
             return await _context.Decks.Where(a =>
-                a.Installation.Equals(installation) &&
-                a.Asset.Equals(asset) &&
+                a.Installation.Id.Equals(installation.Id) &&
+                a.Asset.Id.Equals(asset.Id) &&
                 a.Name.ToLower().Equals(name.ToLower())
             ).Include(d => d.Installation).Include(i => i.Asset).FirstOrDefaultAsync();
         }

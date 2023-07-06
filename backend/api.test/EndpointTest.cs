@@ -102,7 +102,7 @@ namespace Api.Test
             GC.SuppressFinalize(this);
         }
 
-        private async Task PopulateAreaDb(string assetName, string installationName, string deckName, string areaName)
+        private async Task PopulateAreaDb(string assetCode, string installationCode, string deckName, string areaName)
         {
             string assetUrl = $"/assets";
             string installationUrl = $"/installations";
@@ -127,28 +127,28 @@ namespace Api.Test
 
             var assetQuery = new CreateAssetQuery
             {
-                AssetCode = assetName,
-                Name = assetName
+                AssetCode = assetCode,
+                Name = assetCode
             };
 
             var installationQuery = new CreateInstallationQuery
             {
-                AssetCode = assetName,
-                InstallationCode = installationName,
-                Name = installationName
+                AssetCode = assetCode,
+                InstallationCode = installationCode,
+                Name = installationCode
             };
 
             var deckQuery = new CreateDeckQuery
             {
-                AssetCode = assetName,
-                InstallationCode = installationName,
+                AssetCode = assetCode,
+                InstallationCode = installationCode,
                 Name = deckName
             };
 
             var areaQuery = new CreateAreaQuery
             {
-                AssetCode = assetName,
-                InstallationName = installationName,
+                AssetCode = assetCode,
+                InstallationCode = installationCode,
                 DeckName = deckName,
                 AreaName = areaName,
                 DefaultLocalizationPose = testPose
@@ -352,7 +352,7 @@ namespace Api.Test
             var areaQuery = new CreateAreaQuery
             {
                 AssetCode = testAsset,
-                InstallationName = testInstallation,
+                InstallationCode = testInstallation,
                 DeckName = testDeck,
                 AreaName = testArea,
                 DefaultLocalizationPose = testPose

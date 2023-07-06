@@ -91,29 +91,29 @@ namespace Api.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
-        [Route("{assetName}/{installationName}/{deckName}/{areaName}/safe-position")]
+        [Route("{assetCode}/{installationCode}/{deckName}/{areaName}/safe-position")]
         [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<AreaResponse>> AddSafePosition(
-            [FromRoute] string assetName,
-            [FromRoute] string installationName,
+            [FromRoute] string assetCode,
+            [FromRoute] string installationCode,
             [FromRoute] string deckName,
             [FromRoute] string areaName,
             [FromBody] Pose safePosition
         )
         {
             _logger.LogInformation(@"Adding new safe position to {Asset}, {Installation}, 
-                {Deck}, {Area}", assetName, installationName, deckName, areaName);
+                {Deck}, {Area}", assetCode, installationCode, deckName, areaName);
             try
             {
-                var area = await _areaService.AddSafePosition(assetName, areaName, new SafePosition(safePosition));
+                var area = await _areaService.AddSafePosition(assetCode, areaName, new SafePosition(safePosition));
                 if (area != null)
                 {
                     _logger.LogInformation(@"Successfully added new safe position for asset '{assetId}' 
-                        and name '{name}'", assetName, areaName);
+                        and name '{name}'", assetCode, areaName);
                     var response = new AreaResponse
                     {
                         Id = area.Id,
@@ -129,9 +129,9 @@ namespace Api.Controllers
                 }
                 else
                 {
-                    _logger.LogInformation(@"No area with asset {assetName}, installation {installationName}, 
-                        deck {deckName} and name {areaName} could be found.", assetName, installationName, deckName, areaName);
-                    return NotFound(@$"No area with asset {assetName}, installation {installationName}, 
+                    _logger.LogInformation(@"No area with asset {assetCode}, installation {installationCode}, 
+                        deck {deckName} and name {areaName} could be found.", assetCode, installationCode, deckName, areaName);
+                    return NotFound(@$"No area with asset {assetCode}, installation {installationCode}, 
                         deck {deckName} and name {areaName} could be found.");
                 }
             }

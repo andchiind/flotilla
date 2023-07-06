@@ -12,9 +12,9 @@ namespace Api.Services
 
         public abstract Task<Area?> ReadById(string id);
 
-        public abstract Task<IEnumerable<Area>> ReadByAsset(string assetName);
+        public abstract Task<IEnumerable<Area>> ReadByAsset(string assetCode);
 
-        public abstract Task<Area?> ReadByAssetAndName(string assetName, string areaName);
+        public abstract Task<Area?> ReadByAssetAndName(string assetCode, string areaName);
 
         public abstract Task<Area> Create(CreateAreaQuery newArea);
 
@@ -22,7 +22,7 @@ namespace Api.Services
 
         public abstract Task<Area> Update(Area area);
 
-        public abstract Task<Area?> AddSafePosition(string assetName, string areaName, SafePosition safePosition);
+        public abstract Task<Area?> AddSafePosition(string assetCode, string areaName, SafePosition safePosition);
 
         public abstract Task<Area?> Delete(string id);
 
@@ -78,14 +78,14 @@ namespace Api.Services
 
             return await _context.Areas.Where(a =>
                 a.Name.ToLower().Equals(areaName.ToLower()) &&
-                a.Asset.Equals(asset)
+                a.Asset.Id.Equals(asset.Id)
             ).Include(a => a.SafePositions).Include(a => a.Asset)
                 .Include(a => a.Installation).Include(a => a.Deck).FirstOrDefaultAsync();
         }
 
-        public async Task<Area?> ReadByAssetAndName(string assetName, string areaName)
+        public async Task<Area?> ReadByAssetAndName(string assetCode, string areaName)
         {
-            var asset = await _assetService.ReadByName(assetName);
+            var asset = await _assetService.ReadByName(assetCode);
             if (asset == null)
                 return null;
 
@@ -96,14 +96,14 @@ namespace Api.Services
                 .Include(a => a.Installation).Include(a => a.Deck).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<Area>> ReadByAsset(string assetName)
+        public async Task<IEnumerable<Area>> ReadByAsset(string assetCode)
         {
-            var asset = await _assetService.ReadByName(assetName);
+            var asset = await _assetService.ReadByName(assetCode);
             if (asset == null)
                 return new List<Area>();
 
             return await _context.Areas.Where(a =>
-                a.Asset.Equals(asset)).Include(a => a.SafePositions).Include(a => a.Asset)
+                a.Asset.Id.Equals(asset.Id)).Include(a => a.SafePositions).Include(a => a.Asset)
                 .Include(a => a.Installation).Include(a => a.Deck).ToListAsync();
         }
 
@@ -113,9 +113,9 @@ namespace Api.Services
                 return null;
 
             return await _context.Areas.Where(a =>
-                a.Deck.Equals(deck) &&
-                a.Installation.Equals(installation) &&
-                a.Asset.Equals(asset) &&
+                a.Deck.Id.Equals(deck.Id) &&
+                a.Installation.Id.Equals(installation.Id) &&
+                a.Asset.Id.Equals(asset.Id) &&
                 a.Name.ToLower().Equals(areaName.ToLower())
             ).Include(a => a.Deck).Include(d => d.Installation).Include(i => i.Asset)
                 .Include(a => a.SafePositions).FirstOrDefaultAsync();
@@ -135,10 +135,10 @@ namespace Api.Services
                 throw new AssetNotFoundException($"No asset with name {newAreaQuery.AssetCode} could be found");
             }
 
-            var installation = await _installationService.ReadByAssetAndName(asset, newAreaQuery.InstallationName);
+            var installation = await _installationService.ReadByAssetAndName(asset, newAreaQuery.InstallationCode);
             if (installation == null)
             {
-                throw new InstallationNotFoundException($"No installation with name {newAreaQuery.InstallationName} could be found");
+                throw new InstallationNotFoundException($"No installation with name {newAreaQuery.InstallationCode} could be found");
             }
 
             var deck = await _deckService.ReadByAssetAndInstallationAndName(asset, installation, newAreaQuery.DeckName);
@@ -176,9 +176,9 @@ namespace Api.Services
             return area;
         }
 
-        public async Task<Area?> AddSafePosition(string assetName, string areaName, SafePosition safePosition)
+        public async Task<Area?> AddSafePosition(string assetCode, string areaName, SafePosition safePosition)
         {
-            var area = await ReadByAssetAndName(assetName, areaName);
+            var area = await ReadByAssetAndName(assetCode, areaName);
             if (area is null)
             {
                 return null;
