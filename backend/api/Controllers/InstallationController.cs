@@ -106,7 +106,7 @@ namespace Api.Controllers
                 var existingAsset = await _assetService.ReadByName(installation.AssetCode);
                 if (existingAsset == null)
                 {
-                    throw new Exception();
+                    return NotFound($"Asset with asset code {installation.AssetCode} not found");
                 }
                 var existingInstallation = await _installationService.ReadByAssetAndName(existingAsset, installation.InstallationCode);
                 if (existingInstallation != null)

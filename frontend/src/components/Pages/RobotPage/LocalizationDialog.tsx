@@ -4,9 +4,9 @@ import { TranslateText } from 'components/Contexts/LanguageContext'
 import { Icons } from 'utils/icons'
 import { useState, useEffect } from 'react'
 import { BackendAPICaller } from 'api/ApiCaller'
-import { AssetDeck } from 'models/AssetDeck'
+import { Area } from 'models/Area'
 import { Robot } from 'models/Robot'
-import { AssetDeckMapView } from './AssetDeckMapView'
+import { AreaMapView } from './AreaMapView'
 
 const StyledDialog = styled(Card)`
     display: flex;
@@ -37,27 +37,27 @@ interface RobotProps {
 
 export const LocalizationDialog = ({ robot }: RobotProps): JSX.Element => {
     const [isLocalizationDialogOpen, setIsLocalizationDialogOpen] = useState<boolean>(false)
-    const [selectedAssetDeck, setSelectedAssetDeck] = useState<AssetDeck>()
-    const [assetDecks, setAssetDecks] = useState<AssetDeck[]>()
+    const [selectedArea, setSelectedArea] = useState<Area>()
+    const [areas, setAreas] = useState<Area[]>()
 
     useEffect(() => {
-        BackendAPICaller.getAssetDecks().then((response: AssetDeck[]) => {
-            setAssetDecks(response)
+        BackendAPICaller.getAreas().then((response: Area[]) => {
+            setAreas(response)
         })
     }, [])
 
-    const getAssetDeckNames = (assetDecks: AssetDeck[]): Map<string, AssetDeck> => {
-        var assetDeckNameMap = new Map<string, AssetDeck>()
-        assetDecks.map((assetDeck: AssetDeck) => {
-            assetDeckNameMap.set(assetDeck.deckName, assetDeck)
+    const getAreaNames = (areas: Area[]): Map<string, Area> => {
+        var areaNameMap = new Map<string, Area>()
+        areas.map((area: Area) => {
+            areaNameMap.set(area.deckName, area)
         })
-        return assetDeckNameMap
+        return areaNameMap
     }
 
     const onSelectedDeck = (changes: AutocompleteChanges<string>) => {
         const selectedDeckName = changes.selectedItems[0]
-        const selectedAssetDeck = assetDecks?.find((assetDeck) => assetDeck.deckName === selectedDeckName)
-        setSelectedAssetDeck(selectedAssetDeck)
+        const selectedArea = areas?.find((area) => area.deckName === selectedDeckName)
+        setSelectedArea(selectedArea)
     }
 
     const onClickLocalizeRobot = () => {
@@ -66,21 +66,17 @@ export const LocalizationDialog = ({ robot }: RobotProps): JSX.Element => {
 
     const onLocalizationDialogClose = () => {
         setIsLocalizationDialogOpen(false)
-        setSelectedAssetDeck(undefined)
+        setSelectedArea(undefined)
     }
 
     const onClickLocalize = () => {
-        if (selectedAssetDeck) {
-            BackendAPICaller.postLocalizationMission(
-                selectedAssetDeck?.defaultLocalizationPose,
-                robot.id,
-                selectedAssetDeck.id
-            )
+        if (selectedArea) {
+            BackendAPICaller.postLocalizationMission(selectedArea?.defaultLocalizationPose, robot.id, selectedArea.id)
         }
         onLocalizationDialogClose()
     }
 
-    const assetDeckNames = assetDecks ? Array.from(getAssetDeckNames(assetDecks).keys()).sort() : []
+    const areaNames = areas ? Array.from(getAreaNames(areas).keys()).sort() : []
 
     return (
         <>
@@ -101,12 +97,12 @@ export const LocalizationDialog = ({ robot }: RobotProps): JSX.Element => {
                     <Typography variant="h2">{TranslateText('Localize robot')}</Typography>
                     <StyledAutoComplete>
                         <Autocomplete
-                            options={assetDeckNames}
+                            options={areaNames}
                             label={TranslateText('Select deck')}
                             onOptionsChange={onSelectedDeck}
                         />
                     </StyledAutoComplete>
-                    {selectedAssetDeck && <AssetDeckMapView assetDeck={selectedAssetDeck} />}
+                    {selectedArea && <AreaMapView area={selectedArea} />}
                     <StyledButtons>
                         <Button
                             onClick={() => {
@@ -118,7 +114,7 @@ export const LocalizationDialog = ({ robot }: RobotProps): JSX.Element => {
                             {' '}
                             {TranslateText('Cancel')}{' '}
                         </Button>
-                        <Button onClick={onClickLocalize} disabled={!selectedAssetDeck}>
+                        <Button onClick={onClickLocalize} disabled={!selectedArea}>
                             {' '}
                             {TranslateText('Localize')}{' '}
                         </Button>

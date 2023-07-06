@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Globalization;
 using Api.Controllers.Models;
 using Api.Database.Models;
 using Api.Services;
@@ -236,15 +237,18 @@ public class MissionController : ControllerBase
         if (robot is null)
             return NotFound($"Could not find robot with id {scheduledMissionQuery.RobotId}");
 
-        MissionDefinition? missionDefinition = await _missionDefinitionService.ReadById(scheduledMissionQuery.MissionDefinitionId);
+        var missionDefinition = await _missionDefinitionService.ReadById(scheduledMissionQuery.MissionDefinitionId);
         if (missionDefinition == null)
             return NotFound("Mission definition not found");
 
         List<MissionTask>? missionTasks;
-        switch (missionDefinition.Source.Type)
+        missionTasks = missionDefinition.Source.Type switch
         {
-            case MissionSourceType.Echo:
-                missionTasks = _echoService.GetMissionById(int.Parse(missionDefinition.Source.SourceId)).Result.Tags
+            MissionSourceType.Echo =>
+                // CultureInfo is not important here since we are not using decimal points
+                missionTasks = _echoService.GetMissionById(
+                        int.Parse(missionDefinition.Source.SourceId, new CultureInfo("en-US"))
+                    ).Result.Tags
                     .Select(
                         t =>
                         {
@@ -254,14 +258,12 @@ public class MissionController : ControllerBase
                             return new MissionTask(t, tagPosition);
                         }
                     )
-                    .ToList();
-                break;
-            case MissionSourceType.Custom:
-                missionTasks = await _customMissionService.GetMissionTasksFromMissionId(missionDefinition.Source.SourceId);
-                break;
-            default:
-                throw new Exception($"Mission type {missionDefinition.Source.Type} is not accounted for");
-        }
+                    .ToList(),
+            MissionSourceType.Custom =>
+                missionTasks = await _customMissionService.GetMissionTasksFromMissionId(missionDefinition.Source.SourceId),
+            _ =>
+                throw new MissionSourceTypeException($"Mission type {missionDefinition.Source.Type} is not accounted for")
+        };
 
         if (missionTasks == null)
             return NotFound("No mission tasks were found for the requested mission");
@@ -373,7 +375,7 @@ public class MissionController : ControllerBase
             Id = Guid.NewGuid().ToString(),
             Source = new Source
             {
-                SourceId = $"robots/robot-plan/{echoMission.Id}", // Could use echoMission.URL here, but that would necessitate new retrieval methods
+                SourceId = $"{echoMission.Id}",
                 Type = MissionSourceType.Echo
             },
             Name = echoMission.Name,
@@ -437,8 +439,7 @@ public class MissionController : ControllerBase
         if (area == null)
             return NotFound($"Could not find area with name {customMissionQuery.AreaName} in asset {customMissionQuery.AssetCode}");
 
-        // TODO: try catch authentication errors
-        var sourceURL = await _customMissionService.UploadSource(missionTasks);
+        string sourceURL = await _customMissionService.UploadSource(missionTasks);
 
         var customMissionDefinition = new MissionDefinition
         {

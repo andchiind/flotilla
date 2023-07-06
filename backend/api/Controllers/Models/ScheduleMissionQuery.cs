@@ -1,6 +1,4 @@
-﻿using Api.Database.Models;
-
-namespace Api.Controllers.Models
+﻿namespace Api.Controllers.Models
 {
     public class ScheduleMissionQuery
     {

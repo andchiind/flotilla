@@ -11,24 +11,29 @@
         }
     }
 
+    public class MissionSourceTypeException : Exception
+    {
+        public MissionSourceTypeException(string message) : base(message) { }
+    }
+
     public class AssetNotFoundException : Exception
     {
-        public AssetNotFoundException(string message) : base(message) {}
+        public AssetNotFoundException(string message) : base(message) { }
     }
 
     public class InstallationNotFoundException : Exception
     {
-        public InstallationNotFoundException(string message) : base(message) {}
+        public InstallationNotFoundException(string message) : base(message) { }
     }
 
     public class DeckNotFoundException : Exception
     {
-        public DeckNotFoundException(string message) : base(message) {}
+        public DeckNotFoundException(string message) : base(message) { }
     }
 
     public class AreaNotFoundException : Exception
     {
-        public AreaNotFoundException(string message) : base(message) {}
+        public AreaNotFoundException(string message) : base(message) { }
     }
 
     public class MissionNotFoundException : Exception

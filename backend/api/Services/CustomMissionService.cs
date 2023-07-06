@@ -3,7 +3,6 @@
 using System.Text.Json;
 using Api.Database.Models;
 using Api.Options;
-using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 
 namespace Api.Services
@@ -40,7 +39,7 @@ namespace Api.Services
             List<MissionTask>? content;
             try
             {
-                var rawContent = await _blobService.DownloadBlob(id, _storageOptions.Value.CustomMissionContainerName, _storageOptions.Value.AccountName);
+                byte[] rawContent = await _blobService.DownloadBlob(id, _storageOptions.Value.CustomMissionContainerName, _storageOptions.Value.AccountName);
                 var rawBinaryContent = new BinaryData(rawContent);
                 content = rawBinaryContent.ToObjectFromJson<List<MissionTask>>();
             }

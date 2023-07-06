@@ -6,10 +6,10 @@ import { useErrorHandler } from 'react-error-boundary'
 import { PlaceRobotInMap } from '../../../utils/MapMarkers'
 import { BackendAPICaller } from 'api/ApiCaller'
 import { MapMetadata } from 'models/MapMetadata'
-import { AssetDeck } from 'models/AssetDeck'
+import { Area } from 'models/Area'
 
-interface AssetDeckProps {
-    assetDeck: AssetDeck
+interface AreaProps {
+    area: Area
 }
 
 const StyledMap = styled.canvas`
@@ -30,7 +30,7 @@ const StyledLoading = styled.div`
     justify-content: center;
 `
 
-export function AssetDeckMapView({ assetDeck }: AssetDeckProps) {
+export function AreaMapView({ area }: AreaProps) {
     const handleError = useErrorHandler()
     const [mapCanvas, setMapCanvas] = useState<HTMLCanvasElement>(document.createElement('canvas'))
     const [mapImage, setMapImage] = useState<HTMLImageElement>(document.createElement('img'))
@@ -47,7 +47,7 @@ export function AssetDeckMapView({ assetDeck }: AssetDeckProps) {
         context.clearRect(0, 0, mapCanvas.width, mapCanvas.height)
         context?.drawImage(mapImage, 0, 0)
         if (mapMetadata) {
-            PlaceRobotInMap(mapMetadata, mapCanvas, assetDeck.defaultLocalizationPose)
+            PlaceRobotInMap(mapMetadata, mapCanvas, area.defaultLocalizationPose)
         }
     }
 
@@ -61,10 +61,10 @@ export function AssetDeckMapView({ assetDeck }: AssetDeckProps) {
     useEffect(() => {
         setIsLoading(true)
         setImageObjectURL(undefined)
-        BackendAPICaller.getAssetDeckMapMetadata(assetDeck.id)
+        BackendAPICaller.getAreasMapMetadata(area.id)
             .then((mapMetadata) => {
                 setMapMetadata(mapMetadata)
-                BackendAPICaller.getMap(assetDeck.assetCode, mapMetadata.mapName)
+                BackendAPICaller.getMap(area.assetCode, mapMetadata.mapName)
                     .then((imageBlob) => {
                         setImageObjectURL(URL.createObjectURL(imageBlob))
                     })
@@ -77,7 +77,7 @@ export function AssetDeckMapView({ assetDeck }: AssetDeckProps) {
                 setImageObjectURL(NoMap)
             })
         //.catch((e) => handleError(e))
-    }, [assetDeck])
+    }, [area])
 
     useEffect(() => {
         if (!imageObjectURL) {

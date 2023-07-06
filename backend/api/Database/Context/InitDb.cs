@@ -126,7 +126,7 @@ public static class InitDb
             Asset = decks[0].Installation.Asset,
             Name = "AP320",
             MapMetadata = new MapMetadata(),
-            DefaultLocalizationPose = new Pose {},
+            DefaultLocalizationPose = new Pose { },
             SafePositions = new List<SafePosition>()
         };
 
@@ -138,7 +138,7 @@ public static class InitDb
             Asset = decks[0].Installation.Asset,
             Name = "AP330",
             MapMetadata = new MapMetadata(),
-            DefaultLocalizationPose = new Pose {},
+            DefaultLocalizationPose = new Pose { },
             SafePositions = new List<SafePosition>()
         };
 

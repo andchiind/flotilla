@@ -187,7 +187,6 @@ namespace Api.Test
             string robotId = robot.Id;
             string testAsset = "TestAsset";
             string testArea = "testArea";
-            string assetUrl = $"/assets";
             int echoMissionId = 95;
 
             // Act
@@ -307,8 +306,8 @@ namespace Api.Test
             Assert.True(installationResponse.IsSuccessStatusCode);
             Assert.True(deckResponse.IsSuccessStatusCode);
             Assert.True(areaResponse.IsSuccessStatusCode);
-            var assetDeck = await areaResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
-            Assert.True(assetDeck != null);
+            var area = await areaResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
+            Assert.True(area != null);
         }
 
         [Fact]
@@ -342,10 +341,10 @@ namespace Api.Test
                 null,
                 "application/json"
             );
-            var assetDeckResponse = await _client.PostAsync(addSafePositionUrl, content);
-            Assert.True(assetDeckResponse.IsSuccessStatusCode);
-            var assetDeck = await assetDeckResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
-            Assert.True(assetDeck != null);
+            var areaResponse = await _client.PostAsync(addSafePositionUrl, content);
+            Assert.True(areaResponse.IsSuccessStatusCode);
+            var area = await areaResponse.Content.ReadFromJsonAsync<Area>(_serializerOptions);
+            Assert.True(area != null);
 
             // Arrange - Get a Robot
             string url = "/robots";
@@ -380,8 +379,8 @@ namespace Api.Test
 
             foreach (string input in inputOutputPairs.Keys)
             {
-                string assetDeckId = input;
-                string url = $"/areas/{assetDeckId}/map-metadata";
+                string areaId = input;
+                string url = $"/areas/{areaId}/map-metadata";
                 var response = await _client.GetAsync(url);
                 Assert.Equal(inputOutputPairs[input], response.StatusCode);
 

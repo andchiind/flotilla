@@ -1,6 +1,7 @@
 ﻿using Api.Controllers.Models;
 using Api.Database.Models;
 using Api.Services;
+using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,13 +36,13 @@ namespace Api.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
-        [ProducesResponseType(typeof(Area), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Area>> Create([FromBody] CreateAreaQuery area)
+        public async Task<ActionResult<AreaResponse>> Create([FromBody] CreateAreaQuery area)
         {
             _logger.LogInformation("Creating new area");
             try
@@ -58,10 +59,21 @@ namespace Api.Controllers
                     "Succesfully created new area with id '{areaId}'",
                     newArea.Id
                 );
+                var response = new AreaResponse
+                {
+                    Id = newArea.Id,
+                    DeckName = newArea.Deck.Name,
+                    InstallationCode = newArea.Installation.InstallationCode,
+                    AssetCode = newArea.Asset.AssetCode,
+                    AreaName = newArea.Name,
+                    MapMetadata = newArea.MapMetadata,
+                    DefaultLocalizationPose = newArea.DefaultLocalizationPose,
+                    SafePositions = newArea.SafePositions
+                };
                 return CreatedAtAction(
                     nameof(GetAreaById),
                     new { id = newArea.Id },
-                    newArea
+                    response
                 );
             }
             catch (Exception e)
@@ -80,12 +92,12 @@ namespace Api.Controllers
         [HttpPost]
         [Authorize(Roles = Role.Admin)]
         [Route("{asset}/{installationName}/{deckName}/{areaName}/safe-position")]
-        [ProducesResponseType(typeof(Area), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Area>> AddSafePosition(
+        public async Task<ActionResult<AreaResponse>> AddSafePosition(
             [FromRoute] string assetName,
             [FromRoute] string installationName,
             [FromRoute] string deckName,
@@ -93,19 +105,34 @@ namespace Api.Controllers
             [FromBody] Pose safePosition
         )
         {
-            _logger.LogInformation("Adding new safe position to {Asset}, {Installtion}, {Deck}, {Area}", assetName, installationName, deckName, areaName);
+            _logger.LogInformation(@"Adding new safe position to {Asset}, {Installation}, 
+                {Deck}, {Area}", assetName, installationName, deckName, areaName);
             try
             {
                 var area = await _areaService.AddSafePosition(assetName, areaName, new SafePosition(safePosition));
                 if (area != null)
                 {
-                    _logger.LogInformation("Succesfully added new safe position for asset '{assetId}' and name '{name}'", assetName, areaName);
-                    return CreatedAtAction(nameof(GetAreaById), new { id = area.Id }, area); ;
+                    _logger.LogInformation(@"Successfully added new safe position for asset '{assetId}' 
+                        and name '{name}'", assetName, areaName);
+                    var response = new AreaResponse
+                    {
+                        Id = area.Id,
+                        DeckName = area.Deck.Name,
+                        InstallationCode = area.Installation.InstallationCode,
+                        AssetCode = area.Asset.AssetCode,
+                        AreaName = area.Name,
+                        MapMetadata = area.MapMetadata,
+                        DefaultLocalizationPose = area.DefaultLocalizationPose,
+                        SafePositions = area.SafePositions
+                    };
+                    return CreatedAtAction(nameof(GetAreaById), new { id = area.Id }, response); ;
                 }
                 else
                 {
-                    _logger.LogInformation("No area with asset {assetName}, installation {installationName}, deck {deckName} and name {areaName} could be found.", assetName, installationName, deckName, areaName);
-                    return NotFound($"No area with asset {assetName}, installation {installationName}, deck {deckName} and name {areaName} could be found.");
+                    _logger.LogInformation(@"No area with asset {assetName}, installation {installationName}, 
+                        deck {deckName} and name {areaName} could be found.", assetName, installationName, deckName, areaName);
+                    return NotFound(@$"No area with asset {assetName}, installation {installationName}, 
+                        deck {deckName} and name {areaName} could be found.");
                 }
             }
             catch (Exception e)
@@ -121,17 +148,28 @@ namespace Api.Controllers
         [HttpDelete]
         [Authorize(Roles = Role.Admin)]
         [Route("{id}")]
-        [ProducesResponseType(typeof(Area), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Area>> DeleteArea([FromRoute] string id)
+        public async Task<ActionResult<AreaResponse>> DeleteArea([FromRoute] string id)
         {
             var area = await _areaService.Delete(id);
             if (area is null)
                 return NotFound($"Area with id {id} not found");
-            return Ok(area);
+            var response = new AreaResponse
+            {
+                Id = area.Id,
+                DeckName = area.Deck.Name,
+                InstallationCode = area.Installation.InstallationCode,
+                AssetCode = area.Asset.AssetCode,
+                AreaName = area.Name,
+                MapMetadata = area.MapMetadata,
+                DefaultLocalizationPose = area.DefaultLocalizationPose,
+                SafePositions = area.SafePositions
+            };
+            return Ok(response);
         }
 
         /// <summary>
@@ -142,17 +180,28 @@ namespace Api.Controllers
         /// </remarks>
         [HttpGet]
         [Authorize(Roles = Role.Any)]
-        [ProducesResponseType(typeof(IList<Area>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IList<AreaResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IList<Area>>> GetAreas()
+        public async Task<ActionResult<IList<AreaResponse>>> GetAreas()
         {
             try
             {
                 var areas = await _areaService.ReadAll();
-                return Ok(areas);
+                var response = areas.Select(area => new AreaResponse
+                {
+                    Id = area.Id,
+                    DeckName = area.Deck.Name,
+                    InstallationCode = area.Installation.InstallationCode,
+                    AssetCode = area.Asset.AssetCode,
+                    AreaName = area.Name,
+                    MapMetadata = area.MapMetadata,
+                    DefaultLocalizationPose = area.DefaultLocalizationPose,
+                    SafePositions = area.SafePositions
+                });
+                return Ok(response);
             }
             catch (Exception e)
             {
@@ -167,19 +216,30 @@ namespace Api.Controllers
         [HttpGet]
         [Authorize(Roles = Role.Any)]
         [Route("{id}")]
-        [ProducesResponseType(typeof(Area), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AreaResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<Area>> GetAreaById([FromRoute] string id)
+        public async Task<ActionResult<AreaResponse>> GetAreaById([FromRoute] string id)
         {
             try
             {
                 var area = await _areaService.ReadById(id);
                 if (area == null)
                     return NotFound($"Could not find area with id {id}");
-                return Ok(area);
+                var response = new AreaResponse
+                {
+                    Id = area.Id,
+                    DeckName = area.Deck.Name,
+                    InstallationCode = area.Installation.InstallationCode,
+                    AssetCode = area.Asset.AssetCode,
+                    AreaName = area.Name,
+                    MapMetadata = area.MapMetadata,
+                    DefaultLocalizationPose = area.DefaultLocalizationPose,
+                    SafePositions = area.SafePositions
+                };
+                return Ok(response);
             }
             catch (Exception e)
             {
@@ -210,27 +270,33 @@ namespace Api.Controllers
                 return NotFound(errorMessage);
             }
 
-            MapMetadata? map;
+            MapMetadata? mapMetadata;
             var positions = new List<Position>
             {
                 area.DefaultLocalizationPose.Position
             };
             try
             {
-                map = await _mapService.ChooseMapFromPositions(positions, area.Deck.Installation.Asset.AssetCode);
+                mapMetadata = await _mapService.ChooseMapFromPositions(positions, area.Deck.Installation.Asset.AssetCode);
             }
-            catch (ArgumentOutOfRangeException)
+            catch (RequestFailedException e)
             {
-                string errorMessage = $"Unable to find map for area with ID {id}";
-                _logger.LogWarning("{ErrorMessage}", errorMessage);
+                string errorMessage = $"An error occurred while retrieving the map for area {area.Id}";
+                _logger.LogError(e, "{ErrorMessage}", errorMessage);
+                return StatusCode(StatusCodes.Status502BadGateway, errorMessage);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                string errorMessage = $"Could not find a suitable map for area {area.Id}";
+                _logger.LogError(e, "{ErrorMessage}", errorMessage);
                 return NotFound(errorMessage);
             }
 
-            if (map == null)
+            if (mapMetadata == null)
             {
-                return NotFound("Could not find map for this area");
+                return NotFound("A map which contained at least half of the points in this mission could not be found");
             }
-            return Ok(map);
+            return Ok(mapMetadata);
         }
     }
 }

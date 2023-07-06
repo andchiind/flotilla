@@ -3,6 +3,7 @@ using Api.Database.Models;
 using Api.Options;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
+
 namespace Api.Services
 {
     public interface IMapService
