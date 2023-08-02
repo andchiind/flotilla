@@ -266,6 +266,7 @@ namespace Api.EventHandlers
         {
             var provider = GetServiceProvider();
             var missionRunService = provider.GetRequiredService<IMissionRunService>();
+            var missionDefinitionService = provider.GetRequiredService<IMissionDefinitionService>();
             var robotService = provider.GetRequiredService<IRobotService>();
             var robotModelService = provider.GetRequiredService<IRobotModelService>();
             var missionDefinitionService = provider.GetRequiredService<IMissionDefinitionService>();
@@ -367,6 +368,9 @@ namespace Api.EventHandlers
                     model.Type,
                     model.AverageDurationPerTag
                 );
+
+                if (flotillaMissionRun.MissionId != null)
+                    await missionDefinitionService.UpdateLastRun(flotillaMissionRun.MissionId, flotillaMissionRun);
             }
         }
 
