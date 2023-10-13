@@ -36,6 +36,7 @@ import {
     navigation,
     settings,
     platform,
+    edit
 } from '@equinor/eds-icons'
 
 Icon.add({
@@ -75,6 +76,7 @@ Icon.add({
     navigation,
     settings,
     platform,
+    edit,
 })
 
 export enum Icons {
@@ -114,4 +116,5 @@ export enum Icons {
     Navigation = 'navigation',
     Settings = 'settings',
     Platform = 'platform',
+    Edit = 'edit',
 }

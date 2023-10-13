@@ -7,16 +7,13 @@ import { BackendAPICaller } from 'api/ApiCaller'
 import { tokens } from '@equinor/eds-tokens'
 import { Header } from 'components/Header/Header'
 import { CondensedMissionDefinition } from 'models/MissionDefinition'
-import { Button, Typography, Card, Dialog, TextField } from '@equinor/eds-core-react'
+import { Button, Typography, Card, Dialog, TextField, Icon } from '@equinor/eds-core-react'
 import { useLanguageContext } from 'components/Contexts/LanguageContext'
 import { MissionDefinitionUpdateForm } from 'models/MissionDefinitionUpdateForm'
 import { config } from 'config'
+import { Icons } from 'utils/icons'
 
-const StyledFormDialog = styled.div`
-    display: flex;
-    justify-content: space-between;
-`
-const StyledAutoComplete = styled(Card)`
+const StyledFormCard = styled(Card)`
     display: flex;
     justify-content: center;
     padding: 8px;
@@ -28,18 +25,24 @@ const StyledButtonSection = styled.div`
     margin-right: 0;
     gap: 10px;
 `
-const StyledFormSection = styled.div`
+const StyledFormContainer = styled.div`
     display: flex;
-    margin-left: auto;
-    margin-right: 0;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin: auto;
     gap: 10px;
+`
+const StyledFormItem = styled.div`
+    width: 200px;
+    padding: 5px;
+    margin: auto;
 `
 const StyledDialog = styled(Dialog)`
     display: flex;
+    justify-content: space-between;
     padding: 1rem;
     width: 620px;
 `
-
 const StyledMissionDefinitionPage = styled.div`
     display: flex;
     flex-wrap: wrap;
@@ -49,12 +52,7 @@ const StyledMissionDefinitionPage = styled.div`
     margin: 2rem;
 `
 
-interface IProps {
-    missionDefinition: CondensedMissionDefinition
-    updateMissionDefinition: (missionDefinition: CondensedMissionDefinition) => void
-}
-
-function KeyValuePairDisplay({ left, right }: { left: string; right: any }) {
+function KeyValuePairDisplay({ left, right, onEdit }: { left: string; right: any, onEdit?: () => void }) {
     return (
         <>
             <Typography
@@ -63,6 +61,7 @@ function KeyValuePairDisplay({ left, right }: { left: string; right: any }) {
                 color={tokens.colors.text.static_icons__secondary.rgba}
             >
                 {left}
+                {onEdit && <Icon name={Icons.Edit} size={16} onClick={onEdit}></Icon>}
             </Typography>
             <Typography
                 variant="body_long_italic"
@@ -75,9 +74,16 @@ function KeyValuePairDisplay({ left, right }: { left: string; right: any }) {
     )
 }
 
-function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition }: IProps) {
+interface IMissionDefinitionPageBodyProps {
+    missionDefinition: CondensedMissionDefinition
+    updateMissionDefinition: (missionDefinition: CondensedMissionDefinition) => void
+}
+
+function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition }: IMissionDefinitionPageBodyProps) {
     const { TranslateText } = useLanguageContext()
     let navigate = useNavigate()
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
+    const [selectedField, setSelectedField] = useState<string>("")
 
     const displayInspectionFrequency = (inspectionFrequency: string) => {
         if (inspectionFrequency === null) return TranslateText('No inspection frequency set')
@@ -94,12 +100,21 @@ function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition 
         return TranslateText('Inspection required every') + ' ' + returnStringArray.join(', ')
     }
 
+    const onEdit = (editType: string) => {
+        return () => {
+            setIsEditDialogOpen(true)
+            setSelectedField(editType)
+        }
+    }
+
     return (
         <>
-            <KeyValuePairDisplay left={TranslateText('Comment')} right={missionDefinition.comment} />
+            <KeyValuePairDisplay left={TranslateText('Name')} right={missionDefinition.name} onEdit={onEdit('name')} />
+            <KeyValuePairDisplay left={TranslateText('Comment')} right={missionDefinition.comment} onEdit={onEdit('comment')} />
             <KeyValuePairDisplay
                 left={TranslateText('Inspection frequency')}
                 right={displayInspectionFrequency(missionDefinition.inspectionFrequency)}
+                onEdit={onEdit('inspectionFrequency')}
             />
             <KeyValuePairDisplay left={TranslateText('Area')} right={missionDefinition.area.areaName} />
             <KeyValuePairDisplay left={TranslateText('Deck')} right={missionDefinition.area.deckName} />
@@ -116,15 +131,27 @@ function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition 
                 {TranslateText('View last run') +
                     (missionDefinition.lastRun ? '' : ': ' + TranslateText('Not yet performed'))}
             </Button>
-            <MissionDefinitionEditButtons
-                missionDefinition={missionDefinition}
-                updateMissionDefinition={updateMissionDefinition}
-            />
+            {
+                isEditDialogOpen &&
+                <MissionDefinitionEditDialog
+                    fieldName={selectedField}
+                    missionDefinition={missionDefinition}
+                    closeEditDialog={() => setIsEditDialogOpen(false)}
+                    updateMissionDefinition={updateMissionDefinition}
+                />
+            }
         </>
     )
 }
 
-function MissionDefinitionEditButtons({ missionDefinition, updateMissionDefinition }: IProps) {
+interface IMissionDefinitionEditDialogProps {
+    missionDefinition: CondensedMissionDefinition
+    fieldName: string
+    closeEditDialog: () => void
+    updateMissionDefinition: (missionDefinition: CondensedMissionDefinition) => void
+}
+
+function MissionDefinitionEditDialog({ missionDefinition, updateMissionDefinition, fieldName, closeEditDialog }: IMissionDefinitionEditDialogProps) {
     const defaultMissionDefinitionForm: MissionDefinitionUpdateForm = {
         comment: missionDefinition.comment,
         inspectionFrequency: missionDefinition.inspectionFrequency,
@@ -132,7 +159,7 @@ function MissionDefinitionEditButtons({ missionDefinition, updateMissionDefiniti
         isDeprecated: false,
     }
     const { TranslateText } = useLanguageContext()
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
+    
     const [form, setForm] = useState<MissionDefinitionUpdateForm>(defaultMissionDefinitionForm)
 
     const updateInspectionFrequencyFormDays = (newDay: string) => {
@@ -164,7 +191,8 @@ function MissionDefinitionEditButtons({ missionDefinition, updateMissionDefiniti
         const daysAndHours = getDayAndHoursFromInspectionFrequency(form.inspectionFrequency)
         if (daysAndHours[0] === 0 && daysAndHours[1] === 0) form.inspectionFrequency = undefined
         BackendAPICaller.updateMissionDefinition(missionDefinition.id, form).then((missionDefinition) => {
-            setIsEditDialogOpen(false)
+            closeEditDialog()
+            // When we integrate signalR, we will no longer need this function call as it will update regardless
             if (missionDefinition.isDeprecated) updateMissionDefinition(missionDefinition)
         })
     }
@@ -175,68 +203,80 @@ function MissionDefinitionEditButtons({ missionDefinition, updateMissionDefiniti
     const inspectionFrequencyHours =
         inspectionFrequency[1] === null || inspectionFrequency[1] === 0 ? '' : String(inspectionFrequency[1])
 
+    const getFormItem = () => {
+        switch (fieldName) {
+            case "inspectionFrequency":
+                return <StyledFormItem>
+                        <div>
+                            <TextField
+                                id="compact-textfield"
+                                label={TranslateText('Days between inspections')}
+                                unit={TranslateText('days')}
+                                value={inspectionFrequencyDays}
+                                onChange={(changes: ChangeEvent<HTMLInputElement>) =>
+                                    updateInspectionFrequencyFormDays(changes.target.value)
+                                }
+                            />
+                            <TextField
+                                id="compact-textfield"
+                                label={TranslateText('Hours between inspections')}
+                                unit={TranslateText('hours')}
+                                value={inspectionFrequencyHours}
+                                onChange={(changes: ChangeEvent<HTMLInputElement>) =>
+                                    updateInspectionFrequencyFormHours(changes.target.value)
+                                }
+                            />
+                        </div>
+                    </StyledFormItem>
+            case "comment":
+                return <StyledFormItem>
+                        <TextField
+                            id="commentEdit"
+                            multiline
+                            rows={2}
+                            label={TranslateText('Comment')}
+                            value={form.comment ?? ''}
+                            onChange={(changes: ChangeEvent<HTMLInputElement>) =>
+                                setForm({ ...form, comment: changes.target.value })
+                            }
+                        />
+                    </StyledFormItem>
+            case "name":
+                return <StyledFormItem>
+                        <TextField
+                            id="nameEdit"
+                            value={form.name ?? ''}
+                            label={TranslateText("Name")}
+                            onChange={(changes: ChangeEvent<HTMLInputElement>) =>
+                                setForm({ ...form, name: changes.target.value })
+                            }
+                        />
+                    </StyledFormItem>
+            default:
+                console.error("Invalid field name: ", fieldName)
+                break;
+        }
+    }
+
     return (
-        <>
-            <Button onClick={() => setIsEditDialogOpen(true)}>{TranslateText('Edit')}</Button>
-            {isEditDialogOpen && (
-                <StyledFormDialog>
-                    <StyledDialog open={true}>
-                        <StyledAutoComplete>
-                            <StyledFormSection>
-                                <TextField
-                                    id="nameEdit"
-                                    value={form.name ?? ''}
-                                    label={TranslateText('Name')}
-                                    onChange={(changes: ChangeEvent<HTMLInputElement>) =>
-                                        setForm({ ...form, name: changes.target.value })
-                                    }
-                                />
-                                <TextField
-                                    id="commentEdit"
-                                    multiline
-                                    rows={3}
-                                    label={TranslateText('Comment')}
-                                    value={form.comment ?? ''}
-                                    onChange={(changes: ChangeEvent<HTMLInputElement>) =>
-                                        setForm({ ...form, comment: changes.target.value })
-                                    }
-                                />
-                                <div>
-                                    <TextField
-                                        id="compact-textfield"
-                                        label={TranslateText('Days between inspections')}
-                                        unit={TranslateText('days')}
-                                        value={inspectionFrequencyDays}
-                                        onChange={(changes: ChangeEvent<HTMLInputElement>) =>
-                                            updateInspectionFrequencyFormDays(changes.target.value)
-                                        }
-                                    />
-                                    <TextField
-                                        id="compact-textfield"
-                                        label={TranslateText('Hours between inspections')}
-                                        unit={TranslateText('hours')}
-                                        value={inspectionFrequencyHours}
-                                        onChange={(changes: ChangeEvent<HTMLInputElement>) =>
-                                            updateInspectionFrequencyFormHours(changes.target.value)
-                                        }
-                                    />
-                                </div>
-                            </StyledFormSection>
-                            <StyledButtonSection>
-                                <Button onClick={handleSubmit} variant="outlined" color="primary">
-                                    {' '}
-                                    {TranslateText('Update mission definition')}{' '}
-                                </Button>
-                                <Button onClick={() => setIsEditDialogOpen(false)} variant="outlined" color="primary">
-                                    {' '}
-                                    {TranslateText('Cancel')}{' '}
-                                </Button>
-                            </StyledButtonSection>
-                        </StyledAutoComplete>
-                    </StyledDialog>
-                </StyledFormDialog>
-            )}
-        </>
+        <StyledDialog open={true}>
+            <StyledFormCard>
+                <Typography variant="h2">{TranslateText('Edit mission definition')}</Typography>
+                <StyledFormContainer>
+                    {getFormItem()}
+                </StyledFormContainer>
+                <StyledButtonSection>
+                    <Button onClick={handleSubmit} variant="outlined" color="primary">
+                        {' '}
+                        {TranslateText('Update mission definition')}{' '}
+                    </Button>
+                    <Button onClick={() => closeEditDialog()} variant="outlined" color="primary">
+                        {' '}
+                        {TranslateText('Cancel')}{' '}
+                    </Button>
+                </StyledButtonSection>
+            </StyledFormCard>
+        </StyledDialog>
     )
 }
 
