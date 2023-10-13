@@ -36,7 +36,7 @@ import {
     navigation,
     settings,
     platform,
-    edit
+    edit,
 } from '@equinor/eds-icons'
 
 Icon.add({
