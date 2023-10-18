@@ -13,9 +13,6 @@ import { MissionDefinitionUpdateForm } from 'models/MissionDefinitionUpdateForm'
 import { config } from 'config'
 import { Icons } from 'utils/icons'
 
-const boxBackgroundColour = tokens.colors.ui.background__light.hex
-const boxBorderColour = tokens.colors.interactive.primary__resting.hex
-
 const StyledFormCard = styled(Card)`
     display: flex;
     justify-content: center;
@@ -104,9 +101,9 @@ interface IMissionDefinitionPageBodyProps {
 
 function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition }: IMissionDefinitionPageBodyProps) {
     const { TranslateText } = useLanguageContext()
-    let navigate = useNavigate()
     const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
     const [selectedField, setSelectedField] = useState<string>('')
+    let navigate = useNavigate()
 
     const displayInspectionFrequency = (inspectionFrequency: string) => {
         if (inspectionFrequency === null) return TranslateText('No inspection frequency set')
@@ -140,7 +137,7 @@ function MissionDefinitionPageBody({ missionDefinition, updateMissionDefinition 
                 />
                 <KeyValuePairDisplay left={TranslateText('Area')} right={missionDefinition.area.areaName} />
                 <KeyValuePairDisplay left={TranslateText('Deck')} right={missionDefinition.area.deckName} />
-                <KeyValuePairDisplay left={TranslateText('Plant')} right={missionDefinition.area.plantCode} />
+                <KeyValuePairDisplay left={TranslateText('Plant')} right={missionDefinition.area.plantName} />
                 <KeyValuePairDisplay
                     left={TranslateText('Installation')}
                     right={missionDefinition.area.installationCode}
@@ -304,13 +301,13 @@ function MissionDefinitionEditDialog({
                 <Typography variant="h2">{TranslateText('Edit mission definition')}</Typography>
                 {getFormItem()}
                 <StyledButtonSection>
-                    <Button onClick={handleSubmit} variant="outlined" color="primary">
-                        {' '}
-                        {TranslateText('Update mission definition')}{' '}
-                    </Button>
                     <Button onClick={() => closeEditDialog()} variant="outlined" color="primary">
                         {' '}
                         {TranslateText('Cancel')}{' '}
+                    </Button>
+                    <Button onClick={handleSubmit} variant="ghost" color="primary">
+                        {' '}
+                        {TranslateText('Update mission definition')}{' '}
                     </Button>
                 </StyledButtonSection>
             </StyledFormCard>
