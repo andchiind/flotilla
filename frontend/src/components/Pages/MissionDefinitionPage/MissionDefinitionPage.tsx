@@ -43,7 +43,6 @@ const StyledFormItem = styled.div`
     padding: 5px;
     word-break: break-word;
     hyphens: auto;
-    min-height: 60px;
 `
 const StyledDialog = styled(Dialog)`
     display: flex;
@@ -60,42 +59,47 @@ const StyledMissionDefinitionPage = styled.div`
     margin: 2rem;
 `
 const StyledButton = styled(Button)`
-    width: 150px;
+    max-width: 260px;
 `
 const StyledInspectionFrequencyDiv = styled.div`
     > * {
         padding: 10px;
     }
 `
-const StyledEditButton = styled(Button)`
-    padding-left: 5px;
-    padding-top: 0px;
-    margin-top: 0px;
-    height: 0px;
+
+const StyledCard = styled(Card)`
+    display: flex;
+    padding-left: 10px;
+    border-radius: 2px;
+    min-height: 80px;
+    gap: 6px;
+`
+
+const StyledTitleComponents = styled.div`
+    display: flex;
+    flex-firection: row;
+    align-items: center;
+    height: 37px;
 `
 
 function MetadataItem({ title, content, onEdit }: { title: string; content: any; onEdit?: () => void }) {
     return (
         <StyledFormItem>
-            <Typography
-                variant="body_long_bold"
-                group="paragraph"
-                color={tokens.colors.text.static_icons__secondary.rgba}
-            >
-                {title}
-                {onEdit && (
-                    <StyledEditButton variant="ghost" onClick={onEdit}>
-                        <Icon name={Icons.Edit} size={16} />
-                    </StyledEditButton>
-                )}
-            </Typography>
-            <Typography
-                variant="body_long_italic"
-                group="paragraph"
-                color={tokens.colors.text.static_icons__secondary.rgba}
-            >
-                {content}
-            </Typography>
+            <StyledCard style={{ boxShadow: tokens.elevation.raised }}>
+                <StyledTitleComponents>
+                    <Typography variant="body_long_bold" color={tokens.colors.text.static_icons__secondary.rgba}>
+                        {title}
+                    </Typography>
+                    {onEdit && (
+                        <Button style={{ padding: '6px' }} variant="ghost" onClick={onEdit}>
+                            <Icon name={Icons.Edit} size={16} />
+                        </Button>
+                    )}
+                </StyledTitleComponents>
+                <Typography variant="body_long" color={tokens.colors.text.static_icons__secondary.rgba}>
+                    {content}
+                </Typography>
+            </StyledCard>
         </StyledFormItem>
     )
 }
