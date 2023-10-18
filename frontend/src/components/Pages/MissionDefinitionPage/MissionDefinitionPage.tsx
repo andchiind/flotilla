@@ -67,6 +67,12 @@ const StyledInspectionFrequencyDiv = styled.div`
         padding: 10px;
     }
 `
+const StyledEditButton = styled(Button)`
+    padding-left: 5px;
+    padding-top: 0px;
+    margin-top: 0px;
+    height: 0px;
+`
 
 function MetadataItem({ title, content, onEdit }: { title: string; content: any; onEdit?: () => void }) {
     return (
@@ -78,9 +84,9 @@ function MetadataItem({ title, content, onEdit }: { title: string; content: any;
             >
                 {title}
                 {onEdit && (
-                    <Button style={{ padding: '5px' }} variant="ghost" onClick={onEdit}>
+                    <StyledEditButton variant="ghost" onClick={onEdit}>
                         <Icon name={Icons.Edit} size={16} />
-                    </Button>
+                    </StyledEditButton>
                 )}
             </Typography>
             <Typography
