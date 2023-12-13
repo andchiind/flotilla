@@ -112,7 +112,12 @@ namespace Api.Services
 
             return robot;
         }
-        public async Task<Robot> UpdateRobotBatteryLevel(string robotId, float batteryLevel) { return await UpdateRobotProperty(robotId, "BatteryLevel", batteryLevel); }
+        public async Task UpdateRobotBatteryLevel(string robotId, float batteryLevel)
+        {
+            _ = await context.Robots
+                .Where(robot => robot.Id == robotId)
+                .ExecuteUpdateAsync(robots => robots.SetProperty(robot => robot.BatteryLevel, batteryLevel));
+        }
         public async Task<Robot> UpdateRobotPressureLevel(string robotId, float? pressureLevel) { return await UpdateRobotProperty(robotId, "PressureLevel", pressureLevel); }
         public async Task<Robot> UpdateRobotPose(string robotId, Pose pose) { return await UpdateRobotProperty(robotId, "Pose", pose); }
         public async Task<Robot> UpdateRobotEnabled(string robotId, bool enabled) { return await UpdateRobotProperty(robotId, "Enabled", enabled); }
