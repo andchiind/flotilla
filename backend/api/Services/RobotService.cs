@@ -33,7 +33,8 @@ namespace Api.Services
         "CA1309:Use ordinal StringComparison",
         Justification = "EF Core refrains from translating string comparison overloads to SQL"
     )]
-    public class RobotService(FlotillaDbContext context,
+    public class RobotService(
+        FlotillaDbContext context,
         ILogger<RobotService> logger,
         IRobotModelService robotModelService,
         ISignalRService signalRService,
@@ -51,7 +52,7 @@ namespace Api.Services
 
         public async Task<Robot> Create(Robot newRobot)
         {
-            if (newRobot.CurrentArea is not null) { context.Entry(newRobot.CurrentArea).State = EntityState.Unchanged; }
+            if (newRobot.CurrentArea is not null) context.Entry(newRobot.CurrentArea).State = EntityState.Unchanged;
 
             await context.Robots.AddAsync(newRobot);
             await ApplyDatabaseUpdate(newRobot.CurrentInstallation);
@@ -86,7 +87,7 @@ namespace Api.Services
                     Model = robotModel
                 };
                 context.Entry(robotModel).State = EntityState.Unchanged;
-                if (newRobot.CurrentArea is not null) { context.Entry(newRobot.CurrentArea).State = EntityState.Unchanged; }
+                if (newRobot.CurrentArea is not null) context.Entry(newRobot.CurrentArea).State = EntityState.Unchanged;
 
                 await context.Robots.AddAsync(newRobot);
                 await ApplyDatabaseUpdate(newRobot.CurrentInstallation);
@@ -109,15 +110,9 @@ namespace Api.Services
         public async Task<Robot> UpdateCurrentArea(string robotId, Area? area) { return await UpdateRobotProperty(robotId, "CurrentArea", area); }
         public async Task<Robot> UpdateMissionQueueFrozen(string robotId, bool missionQueueFrozen) { return await UpdateRobotProperty(robotId, "MissionQueueFrozen", missionQueueFrozen); }
 
-        public async Task<IEnumerable<Robot>> ReadAll()
-        {
-            return await GetRobotsWithSubModels().ToListAsync();
-        }
+        public async Task<IEnumerable<Robot>> ReadAll() { return await GetRobotsWithSubModels().ToListAsync(); }
 
-        public async Task<Robot?> ReadById(string id)
-        {
-            return await GetRobotsWithSubModels().FirstOrDefaultAsync(robot => robot.Id.Equals(id));
-        }
+        public async Task<Robot?> ReadById(string id) { return await GetRobotsWithSubModels().FirstOrDefaultAsync(robot => robot.Id.Equals(id)); }
 
         public async Task<Robot?> ReadByIsarId(string isarId)
         {
@@ -132,7 +127,7 @@ namespace Api.Services
 
         public async Task<Robot> Update(Robot robot)
         {
-            if (robot.CurrentArea is not null) { context.Entry(robot.CurrentArea).State = EntityState.Unchanged; }
+            if (robot.CurrentArea is not null) context.Entry(robot.CurrentArea).State = EntityState.Unchanged;
 
             var entry = context.Update(robot);
             await ApplyDatabaseUpdate(robot.CurrentInstallation);
@@ -143,7 +138,7 @@ namespace Api.Services
         public async Task<Robot?> Delete(string id)
         {
             var robot = await GetRobotsWithSubModels().FirstOrDefaultAsync(ev => ev.Id.Equals(id));
-            if (robot is null) { return null; }
+            if (robot is null) return null;
 
             context.Robots.Remove(robot);
             await ApplyDatabaseUpdate(robot.CurrentInstallation);
@@ -217,9 +212,13 @@ namespace Api.Services
         {
             var accessibleInstallationCodes = await accessRoleService.GetAllowedInstallationCodes();
             if (installation == null || accessibleInstallationCodes.Contains(installation.InstallationCode.ToUpper(CultureInfo.CurrentCulture)))
+            {
                 await context.SaveChangesAsync();
+            }
             else
+            {
                 throw new UnauthorizedAccessException($"User does not have permission to update robot in installation {installation.Name}");
+            }
         }
     }
 }
