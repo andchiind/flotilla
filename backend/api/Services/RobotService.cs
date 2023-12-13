@@ -17,7 +17,7 @@ namespace Api.Services
         public Task<Robot?> ReadByIsarId(string isarId);
         public Task<IList<Robot>> ReadLocalizedRobotsForInstallation(string installationCode);
         public Task<Robot> Update(Robot robot);
-        public Task<Robot> UpdateRobotStatus(string robotId, RobotStatus status);
+        public Task<Robot?> UpdateRobotStatus(string robotId, RobotStatus status);
         public Task<Robot> UpdateRobotBatteryLevel(string robotId, float batteryLevel);
         public Task<Robot> UpdateRobotPressureLevel(string robotId, float? pressureLevel);
         public Task<Robot> UpdateRobotPose(string robotId, Pose pose);
@@ -97,10 +97,20 @@ namespace Api.Services
             throw new DbUpdateException("Could not create new robot in database as robot model does not exist");
         }
 
-        public async Task<Robot> UpdateRobotStatus(string robotId, RobotStatus status)
+        public async Task<Robot?> UpdateRobotStatus(string robotId, RobotStatus status)
         {
             logger.LogInformation("Updating robot {robotId} status to {status}", robotId, status);
-            return await UpdateRobotProperty(robotId, "Status", status);
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.Status, status));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
         }
         public async Task<Robot> UpdateRobotBatteryLevel(string robotId, float batteryLevel) { return await UpdateRobotProperty(robotId, "BatteryLevel", batteryLevel); }
         public async Task<Robot> UpdateRobotPressureLevel(string robotId, float? pressureLevel) { return await UpdateRobotProperty(robotId, "PressureLevel", pressureLevel); }
@@ -219,6 +229,19 @@ namespace Api.Services
             {
                 throw new UnauthorizedAccessException($"User does not have permission to update robot in installation {installation.Name}");
             }
+        }
+
+        private async Task VerifyThatUserIsAuthorizedToUpdateDataForInstallation(Installation? installation)
+        {
+            var accessibleInstallationCodes = await accessRoleService.GetAllowedInstallationCodes();
+            if (installation == null || accessibleInstallationCodes.Contains(installation.InstallationCode.ToUpper(CultureInfo.CurrentCulture))) return;
+
+            throw new UnauthorizedAccessException($"User does not have permission to update robot in installation {installation.Name}");
+        }
+
+        private void NotifySignalROfUpdatedRobot(Robot robot, Installation installation)
+        {
+            _ = signalRService.SendMessageAsync("Robot updated", installation, robot != null ? new RobotResponse(robot) : null);
         }
     }
 }
