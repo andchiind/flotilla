@@ -112,18 +112,78 @@ namespace Api.Services
 
             return robot;
         }
-        public async Task UpdateRobotBatteryLevel(string robotId, float batteryLevel)
+        public async Task<Robot> UpdateRobotBatteryLevel(string robotId, float batteryLevel)
         {
-            _ = await context.Robots
-                .Where(robot => robot.Id == robotId)
-                .ExecuteUpdateAsync(robots => robots.SetProperty(robot => robot.BatteryLevel, batteryLevel));
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.BatteryLevel, batteryLevel));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
         }
-        public async Task<Robot> UpdateRobotPressureLevel(string robotId, float? pressureLevel) { return await UpdateRobotProperty(robotId, "PressureLevel", pressureLevel); }
+        public async Task<Robot> UpdateRobotPressureLevel(string robotId, float? pressureLevel)
+        {
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.PressureLevel, pressureLevel));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
+        }
         public async Task<Robot> UpdateRobotPose(string robotId, Pose pose) { return await UpdateRobotProperty(robotId, "Pose", pose); }
-        public async Task<Robot> UpdateRobotEnabled(string robotId, bool enabled) { return await UpdateRobotProperty(robotId, "Enabled", enabled); }
-        public async Task<Robot> UpdateCurrentMissionId(string robotId, string? currentMissionId) { return await UpdateRobotProperty(robotId, "CurrentMissionId", currentMissionId); }
+        public async Task<Robot> UpdateRobotEnabled(string robotId, bool enabled)
+        {
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.Enabled, enabled));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
+        }
+        public async Task<Robot> UpdateCurrentMissionId(string robotId, string? currentMissionId)
+        {
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.CurrentMissionId, currentMissionId));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
+        }
         public async Task<Robot> UpdateCurrentArea(string robotId, Area? area) { return await UpdateRobotProperty(robotId, "CurrentArea", area); }
-        public async Task<Robot> UpdateMissionQueueFrozen(string robotId, bool missionQueueFrozen) { return await UpdateRobotProperty(robotId, "MissionQueueFrozen", missionQueueFrozen); }
+        public async Task<Robot> UpdateMissionQueueFrozen(string robotId, bool missionQueueFrozen)
+        {
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.MissionQueueFrozen, missionQueueFrozen));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
+        }
 
         public async Task<IEnumerable<Robot>> ReadAll() { return await GetRobotsWithSubModels().ToListAsync(); }
 
