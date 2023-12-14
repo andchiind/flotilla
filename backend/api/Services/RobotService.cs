@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq.Expressions;
 using Api.Controllers.Models;
 using Api.Database.Context;
 using Api.Database.Models;
@@ -141,20 +142,7 @@ namespace Api.Services
             return robot;
         }
         public async Task<Robot> UpdateRobotPose(string robotId, Pose pose) { return await UpdateRobotProperty(robotId, "Pose", pose); }
-        public async Task<Robot> UpdateRobotEnabled(string robotId, bool enabled)
-        {
-            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
-            var robot = await robotQuery.FirstOrDefaultAsync();
-
-            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
-
-            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.Enabled, enabled));
-
-            robot = await robotQuery.FirstOrDefaultAsync();
-            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
-
-            return robot;
-        }
+        public async Task<Robot> UpdateRobotEnabled(string robotId, bool enabled) { return await UpdateRobotProperty2(robotId, robot => robot.Enabled, enabled); }
         public async Task<Robot> UpdateCurrentMissionId(string robotId, string? currentMissionId)
         {
             var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
@@ -231,6 +219,21 @@ namespace Api.Services
 #pragma warning restore CA1304
                     && robot.CurrentArea != null)
                 .ToListAsync();
+        }
+        
+        public async Task<Robot> UpdateRobotProperty2<TProperty>(string robotId, Func<Robot, TProperty> property, TProperty value)
+        {
+            var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
+            var robot = await robotQuery.FirstOrDefaultAsync();
+
+            await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
+
+            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(property, value));
+
+            robot = await robotQuery.FirstOrDefaultAsync();
+            NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
+
+            return robot;
         }
 
         private async Task<Robot> UpdateRobotProperty(string robotId, string propertyName, object? value)
