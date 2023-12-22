@@ -6,6 +6,7 @@ using Api.Database.Context;
 using Api.Database.Models;
 using Api.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 namespace Api.Services
 {
     public interface IRobotService
@@ -106,13 +107,20 @@ namespace Api.Services
 
             await VerifyThatUserIsAuthorizedToUpdateDataForInstallation(robot!.CurrentInstallation);
 
-            await robotQuery.ExecuteUpdateAsync(robots => robots.SetProperty(r => r.Status, status));
-
+            await UpdateRobotProperty(robotQuery, robots => robots.SetProperty(r => r.Status, status));
             robot = await robotQuery.FirstOrDefaultAsync();
             NotifySignalROfUpdatedRobot(robot!, robot!.CurrentInstallation!);
 
             return robot;
         }
+
+        //private async Task<Robot?> UpdateRobotProperty(string robotId, Expression<Func<SetPropertyCalls<Robot>, SetPropertyCalls<Robot>>> updateFunction)
+
+        private async Task UpdateRobotProperty(IQueryable<Robot> query, Expression<Func<SetPropertyCalls<Robot>, SetPropertyCalls<Robot>>> updateFunction)
+        {
+            await query.ExecuteUpdateAsync(updateFunction);
+        }
+
         public async Task<Robot> UpdateRobotBatteryLevel(string robotId, float batteryLevel)
         {
             var robotQuery = context.Robots.Where(robot => robot.Id == robotId).Include(robot => robot.CurrentInstallation);
