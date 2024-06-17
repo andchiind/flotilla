@@ -111,6 +111,7 @@ namespace Api.Services
                 if (missionRun == null) { return; }
             }
 
+            // TODO: add start_pose and/or undock to isar message
             try { await StartMissionRun(missionRun); }
             catch (Exception ex) when (
                 ex is MissionException
@@ -375,7 +376,7 @@ namespace Api.Services
             }
         }
 
-        private async Task StartMissionRun(MissionRun queuedMissionRun)
+        private async Task StartMissionRun(MissionRun queuedMissionRun, bool isFirstMissionInQueue = false)
         {
             string robotId = queuedMissionRun.Robot.Id;
             string missionRunId = queuedMissionRun.Id;
@@ -411,7 +412,7 @@ namespace Api.Services
             }
 
             IsarMission isarMission;
-            try { isarMission = await isarService.StartMission(robot, missionRun); }
+            try { isarMission = await isarService.StartMission(robot, missionRun, isFirstMissionInQueue: isFirstMissionInQueue); }
             catch (HttpRequestException e)
             {
                 string errorMessage = $"Could not reach ISAR at {robot.IsarUri}";

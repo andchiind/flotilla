@@ -11,6 +11,9 @@ namespace Api.Database.Models
         public string Id { get; set; }
 
         [Required]
+        public bool DockAvailable { get; set; }
+
+        [Required]
         public Pose Pose { get; set; }
 
         public DefaultLocalizationPose()
