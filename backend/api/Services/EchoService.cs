@@ -41,20 +41,43 @@ namespace Api.Services
                 ? "robots/robot-plan?Status=Ready"
                 : $"robots/robot-plan?InstallationCode={installationCode}&&Status=Ready";
 
-            var response = await echoApi.CallApiForAppAsync(
-                ServiceName,
-                options =>
-                {
-                    options.HttpMethod = HttpMethod.Get.Method;
-                    options.RelativePath = relativePath;
-                }
-            );
+            HttpResponseMessage? response;
+            try
+            {
+                response = await echoApi.CallApiForAppAsync(
+                    ServiceName,
+                    options =>
+                    {
+                        options.HttpMethod = HttpMethod.Get.Method;
+                        options.RelativePath = relativePath;
+                    }
+                );
+
+                
+            }
+            catch (Exception)
+            {
+                // TODO: raise generic error which handles all cases
+                throw;
+            }
 
             response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                // TODO:
+            }
 
-            var echoMissions =
-                await response.Content.ReadFromJsonAsync<List<EchoMissionResponse>>()
-                ?? throw new JsonException("Failed to deserialize missions from Echo");
+            if (response.Content is null)
+            {
+                // TODO:
+            }
+
+            var echoMissions = await response.Content.ReadFromJsonAsync<List<EchoMissionResponse>>();
+
+            if (echoMissions is null)
+            {
+                throw new JsonException("Failed to deserialize missions from Echo");
+            }
 
             var availableMissions = new List<CondensedMissionDefinition>();
 
